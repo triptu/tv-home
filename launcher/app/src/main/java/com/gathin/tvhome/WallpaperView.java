@@ -67,13 +67,17 @@ public class WallpaperView extends FrameLayout {
     private static final int[] CLOCK_SCRIM_COLORS = {0x73000000, 0x3D000000, 0x00000000};
     private static final float[] CLOCK_SCRIM_STOPS = {0f, 0.5f, 1f};
     private static final float CLOCK_SCRIM_W = 0.55f, CLOCK_SCRIM_H = 0.45f;
+    /** Shade behind the caption, only when one is bound: an ellipse from the bottom-left corner. */
+    private static final int[] CAPTION_SCRIM_COLORS = {0x66000000, 0x2E000000, 0x00000000};
+    private static final float CAPTION_SCRIM_W = 0.42f, CAPTION_SCRIM_H = 0.32f;
     private static final ExecutorService DECODER = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
         r.run();
     }, "wallpaper"));
 
     // Static like MainActivity.lastFocused: if the activity is recreated the rotation carries on where it was.
-    private static List<String> order;
+    /** {file, title, artist, year} per picture. */
+    private static List<String[]> order;
     private static List<String[]> quotes;
     private static int index;
     private static int quoteIndex;
@@ -83,11 +87,14 @@ public class WallpaperView extends FrameLayout {
     private final ObjectAnimator[] motion = new ObjectAnimator[2];
     private final Paint scrim = new Paint(Paint.DITHER_FLAG);
     private final Paint clockScrim = new Paint(Paint.DITHER_FLAG);
+    private final Paint captionScrim = new Paint(Paint.DITHER_FLAG);
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable advance = () -> load(true);
     private final Random random = new Random();
     private View quoteBox;
     private TextView quoteText, quoteAuthor;
+    private View captionBox;
+    private TextView captionTitle, captionByline;
     private int front;
     private boolean running;
     private boolean fading;
@@ -124,9 +131,17 @@ public class WallpaperView extends FrameLayout {
         box.setAlpha(0f);
     }
 
+    /** The caption for each picture: box is faded with it, title and "Artist, year" byline are filled in. */
+    void bindCaption(View box, TextView title, TextView byline) {
+        captionBox = box;
+        captionTitle = title;
+        captionByline = byline;
+        box.setAlpha(0f);
+    }
+
     /** Asset file name (in art/) of the picture shown, or null before the first one. */
     String currentFile() {
-        return order.isEmpty() ? null : order.get(index);
+        return order.isEmpty() ? null : order.get(index)[0];
     }
 
     /** Shows the current picture (decoding it first if this view has none yet) and resumes the rotation. */
@@ -159,6 +174,11 @@ public class WallpaperView extends FrameLayout {
             setQuote(quoteIndex);
             quoteBox.setAlpha(1f);
         }
+        if (captionBox != null && bitmaps[front] != null) {
+            captionBox.animate().cancel();
+            setCaption(index);
+            captionBox.setAlpha(1f);
+        }
     }
 
     private void schedule(long delayMs) {
@@ -170,7 +190,7 @@ public class WallpaperView extends FrameLayout {
         nextAt = 0;
         final int token = ++request;
         final int target = (index + (next ? 1 : 0)) % order.size();
-        final String path = DIR + "/" + order.get(target);
+        final String path = DIR + "/" + order.get(target)[0];
         final int w = viewWidth(), h = viewHeight();
         final AssetManager assets = getContext().getAssets();
         DECODER.execute(() -> {
@@ -189,7 +209,11 @@ public class WallpaperView extends FrameLayout {
                 long fadeMs = next ? FADE_MS : FIRST_FADE_MS;
                 show(bmp, fadeMs);
                 if (next) quoteIndex++;
-                showQuote(next, fadeMs);
+                if (quoteBox != null && !quotes.isEmpty()) {
+                    int q = quoteIndex;
+                    swap(quoteBox, next, fadeMs, () -> setQuote(q));
+                }
+                if (captionBox != null) swap(captionBox, next, fadeMs, () -> setCaption(target));
             });
         });
     }
@@ -256,19 +280,17 @@ public class WallpaperView extends FrameLayout {
         }
     }
 
-    /** Fades the quote out over the first part of the crossfade and the new one in over the rest. */
-    private void showQuote(boolean next, long fadeMs) {
-        if (quoteBox == null || quotes.isEmpty()) return;
-        int q = quoteIndex;
-        quoteBox.animate().cancel();
-        if (!next || quoteBox.getAlpha() == 0f) {
-            setQuote(q);
-            quoteBox.animate().alpha(1f).setDuration(fadeMs * 2).start();
+    /** Fades box out over the first part of the crossfade, refills it, and fades it in over the rest. */
+    private static void swap(View box, boolean next, long fadeMs, Runnable fill) {
+        box.animate().cancel();
+        if (!next || box.getAlpha() == 0f) {
+            fill.run();
+            box.animate().alpha(1f).setDuration(fadeMs * 2).start();
             return;
         }
-        quoteBox.animate().alpha(0f).setDuration(fadeMs * 2 / 5).withEndAction(() -> {
-            setQuote(q);
-            quoteBox.animate().alpha(1f).setDuration(fadeMs * 3 / 5).start();
+        box.animate().alpha(0f).setDuration(fadeMs * 2 / 5).withEndAction(() -> {
+            fill.run();
+            box.animate().alpha(1f).setDuration(fadeMs * 3 / 5).start();
         }).start();
     }
 
@@ -277,6 +299,16 @@ public class WallpaperView extends FrameLayout {
         quoteText.setText(q[0]);
         quoteAuthor.setText(q[1]);
         quoteAuthor.setVisibility(q[1].isEmpty() ? GONE : VISIBLE);
+    }
+
+    /** Title, then "Artist, year" (or whichever of the two the catalog has). */
+    private void setCaption(int i) {
+        String[] a = order.get(i);
+        String byline = a[2].isEmpty() || a[3].isEmpty() ? a[2] + a[3] : a[2] + ", " + a[3];
+        captionTitle.setText(a[1]);
+        captionTitle.setVisibility(a[1].isEmpty() ? GONE : VISIBLE);
+        captionByline.setText(byline);
+        captionByline.setVisibility(byline.isEmpty() ? GONE : VISIBLE);
     }
 
     private int viewWidth() {
@@ -290,15 +322,18 @@ public class WallpaperView extends FrameLayout {
     }
 
     /** Landscape entries of art/catalog.json, or every JPEG in art/ while there is no catalog. */
-    private static List<String> readCatalog(AssetManager assets) {
-        List<String> files = new ArrayList<>();
+    private static List<String[]> readCatalog(AssetManager assets) {
+        List<String[]> files = new ArrayList<>();
         try {
             JSONArray catalog = new JSONArray(readAsset(assets, DIR + "/catalog.json"));
             for (int i = 0; i < catalog.length(); i++) {
                 JSONObject e = catalog.getJSONObject(i);
                 String file = e.optString("file");
                 double width = e.optDouble("width", 0), height = e.optDouble("height", 0);
-                if (!file.isEmpty() && height > 0 && width / height >= MIN_ASPECT) files.add(file);
+                if (!file.isEmpty() && height > 0 && width / height >= MIN_ASPECT) {
+                    files.add(new String[]{file, e.optString("title").trim(), e.optString("artist").trim(),
+                            e.optString("year").trim()});
+                }
             }
             return files;
         } catch (IOException | JSONException e) {
@@ -309,7 +344,7 @@ public class WallpaperView extends FrameLayout {
             if (names != null) {
                 for (String n : names) {
                     String lower = n.toLowerCase(Locale.ROOT);
-                    if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) files.add(n);
+                    if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) files.add(new String[]{n, "", "", ""});
                 }
             }
         } catch (IOException ignored) {
@@ -389,6 +424,12 @@ public class WallpaperView extends FrameLayout {
         squash.setScale(1f, rh / rw);
         clock.setLocalMatrix(squash);
         clockScrim.setShader(clock);
+        float cw = w * CAPTION_SCRIM_W, ch = h * CAPTION_SCRIM_H;
+        RadialGradient caption = new RadialGradient(0, h, cw, CAPTION_SCRIM_COLORS, CLOCK_SCRIM_STOPS, Shader.TileMode.CLAMP);
+        Matrix squashCaption = new Matrix();
+        squashCaption.setScale(1f, ch / cw, 0, h);
+        caption.setLocalMatrix(squashCaption);
+        captionScrim.setShader(caption);
     }
 
     @Override
@@ -396,6 +437,9 @@ public class WallpaperView extends FrameLayout {
         super.dispatchDraw(canvas);
         canvas.drawRect(0, 0, getWidth(), getHeight() * SCRIM_STOPS[SCRIM_STOPS.length - 1], scrim);
         canvas.drawRect(0, 0, getWidth() * CLOCK_SCRIM_W, getHeight() * CLOCK_SCRIM_H, clockScrim);
+        if (captionBox != null) {
+            canvas.drawRect(0, getHeight() * (1 - CAPTION_SCRIM_H), getWidth() * CAPTION_SCRIM_W, getHeight(), captionScrim);
+        }
     }
 
     @Override
