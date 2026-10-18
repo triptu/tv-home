@@ -61,49 +61,56 @@
             android:shadowColor="#80000000"
             android:shadowRadius="8" />
 
-        <LinearLayout
-            android:id="@+id/quote"
+        <!-- Host for the idle fade; the quote panel inside fades with each new picture. -->
+        <FrameLayout
+            android:id="@+id/quoteHost"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="11dp"
-            android:background="@drawable/info_panel_bg"
-            android:orientation="vertical">
+            android:layout_marginTop="20dp">
 
-            <com.gathin.tvhome.TightTextView
-                android:id="@+id/quoteText"
+            <LinearLayout
+                android:id="@+id/quote"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxWidth="420dp"
-                android:maxLines="3"
-                android:ellipsize="end"
-                android:breakStrategy="balanced"
-                android:textColor="#E6FFFFFF"
-                android:textSize="15sp"
-                android:lineSpacingMultiplier="1.2"
-                android:fontFamily="@font/outfit"
-                android:fontVariationSettings="'wght' 300"
-                android:shadowColor="#66000000"
-                android:shadowRadius="6" />
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="11dp"
+                android:background="@drawable/info_panel_bg"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/quoteAuthor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:singleLine="true"
-                android:textColor="#B3FFFFFF"
-                android:textSize="10sp"
-                android:fontFamily="@font/outfit"
-                android:fontVariationSettings="'wght' 500"
-                android:letterSpacing="0.2"
-                android:textAllCaps="true"
-                android:shadowColor="#66000000"
-                android:shadowRadius="6" />
-        </LinearLayout>
+                <com.gathin.tvhome.TightTextView
+                    android:id="@+id/quoteText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxWidth="420dp"
+                    android:maxLines="3"
+                    android:ellipsize="end"
+                    android:breakStrategy="balanced"
+                    android:textColor="#E6FFFFFF"
+                    android:textSize="15sp"
+                    android:lineSpacingMultiplier="1.2"
+                    android:fontFamily="@font/outfit"
+                    android:fontVariationSettings="'wght' 300"
+                    android:shadowColor="#66000000"
+                    android:shadowRadius="6" />
+
+                <TextView
+                    android:id="@+id/quoteAuthor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:singleLine="true"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/outfit"
+                    android:fontVariationSettings="'wght' 500"
+                    android:letterSpacing="0.2"
+                    android:textAllCaps="true"
+                    android:shadowColor="#66000000"
+                    android:shadowRadius="6" />
+            </LinearLayout>
+        </FrameLayout>
     </LinearLayout>
 
     <!-- The 4dp padding leaves room for the focus scale; the margins make up for it. -->

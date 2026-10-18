@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -31,6 +34,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** GalleryActivity.EXTRA_START_FILE: the painting to hang first. */
     private static final String EXTRA_START_FILE = "start_file";
     private static final long PANEL_MS = 220;
+    /** With no key pressed for this long, the UI fades back and the art takes over. */
+    private static final long IDLE_MS = 8_000;
+    private static final long IDLE_FADE_MS = 1_200;
+    private static final long WAKE_MS = 250;
+    private static final float IDLE_ALPHA = 0.08f, IDLE_CLOCK_ALPHA = 0.5f;
 
     // Static so they survive the activity being destroyed while another app is open (low-memory TVs,
     // or Developer options -> "Don't keep activities"); they only reset when the process dies.
@@ -58,6 +66,16 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean stopped = true;
 
     private final DecelerateInterpolator ease = new DecelerateInterpolator(1.5f);
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable goIdle = this::fadeToIdle;
+    /** Faded back: the next key only wakes the screen. */
+    private boolean idle;
+    /** The key that woke the screen; its repeats and release are swallowed too. */
+    private int wakeKey = KeyEvent.KEYCODE_UNKNOWN;
+    /** Faded to IDLE_ALPHA when idle. */
+    private View[] idleFaint;
+    /** Faded to IDLE_CLOCK_ALPHA when idle. */
+    private View[] idleDim;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +91,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         bottomBlock = findViewById(R.id.bottomBlock);
         gridPanel = findViewById(R.id.gridPanel);
         gridContent = findViewById(R.id.gridContent);
+        idleFaint = new View[]{bottomBlock, topButtons, findViewById(R.id.quoteHost)};
+        idleDim = new View[]{findViewById(R.id.clock), findViewById(R.id.date)};
 
         dock = findViewById(R.id.dock);
         dock.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -143,6 +163,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         dockAdapter.setItems(dockItems);
         gridAdapter.setItems(apps.others);
         closeGrid(false);
+        wake(false);
 
         // Back where we left: the button or dock tile, or All apps after an app from the grid.
         final int buttonId = lastButtonId;
@@ -158,6 +179,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onPause() {
         super.onPause();
+        handler.removeCallbacks(goIdle);
         wallpaper.stop();
     }
 
@@ -171,6 +193,63 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     public void onBackPressed() {
         // Home screen: Back only closes the app panel.
         if (gridOpen) closeGrid(true);
+    }
+
+    // ---- idle fade -------------------------------------------------------------------------------
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        int code = event.getKeyCode();
+        if (isSystemKey(code)) return super.dispatchKeyEvent(event);
+        if (code == wakeKey) {
+            // The press that woke the screen: swallow its repeats and release so focus stays put.
+            if (event.getAction() == KeyEvent.ACTION_UP) wakeKey = KeyEvent.KEYCODE_UNKNOWN;
+            return true;
+        }
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (idle) {
+                wakeKey = code;
+                wake(true);
+                return true;
+            }
+            scheduleIdle();
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    /** Volume and power keys pass straight through and neither wake nor keep the screen awake. */
+    private static boolean isSystemKey(int code) {
+        return code == KeyEvent.KEYCODE_VOLUME_UP || code == KeyEvent.KEYCODE_VOLUME_DOWN
+                || code == KeyEvent.KEYCODE_VOLUME_MUTE || code == KeyEvent.KEYCODE_POWER;
+    }
+
+    private void scheduleIdle() {
+        handler.removeCallbacks(goIdle);
+        handler.postDelayed(goIdle, IDLE_MS);
+    }
+
+    private void fadeToIdle() {
+        if (gridOpen) {   // never while the app panel is open
+            scheduleIdle();
+            return;
+        }
+        idle = true;
+        AccelerateDecelerateInterpolator inOut = new AccelerateDecelerateInterpolator();
+        for (View v : idleFaint) v.animate().alpha(IDLE_ALPHA).setDuration(IDLE_FADE_MS).setInterpolator(inOut).start();
+        for (View v : idleDim) v.animate().alpha(IDLE_CLOCK_ALPHA).setDuration(IDLE_FADE_MS).setInterpolator(inOut).start();
+    }
+
+    /** Brings the UI back, animated or at once, and restarts the idle timer. */
+    private void wake(boolean animate) {
+        idle = false;
+        for (View[] group : new View[][]{idleFaint, idleDim}) {
+            for (View v : group) {
+                v.animate().cancel();
+                if (animate) v.animate().alpha(1f).setDuration(WAKE_MS).setInterpolator(ease).start();
+                else v.setAlpha(1f);
+            }
+        }
+        scheduleIdle();
     }
 
     // ---- tiles -----------------------------------------------------------------------------------
