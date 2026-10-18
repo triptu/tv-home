@@ -87,11 +87,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         root = findViewById(R.id.root);
         wallpaper = findViewById(R.id.wallpaper);
         wallpaper.bindQuote(findViewById(R.id.quote), findViewById(R.id.quoteText), findViewById(R.id.quoteAuthor));
+        wallpaper.bindClock(findViewById(R.id.clock), findViewById(R.id.date));
         topButtons = findViewById(R.id.topButtons);
         bottomBlock = findViewById(R.id.bottomBlock);
         gridPanel = findViewById(R.id.gridPanel);
         gridContent = findViewById(R.id.gridContent);
-        idleFaint = new View[]{bottomBlock, topButtons};
+        idleFaint = new View[]{bottomBlock, topButtons, findViewById(R.id.buttonShade)};
         idleDim = new View[]{findViewById(R.id.clock), findViewById(R.id.date)};
 
         dock = findViewById(R.id.dock);

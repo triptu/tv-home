@@ -16,6 +16,14 @@
         android:layout_height="match_parent"
         android:importantForAccessibility="noHideDescendants" />
 
+    <!-- The text top left brings its own shade with each picture; the buttons get this one. -->
+    <View
+        android:id="@+id/buttonShade"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        android:layout_gravity="top|end"
+        android:background="@drawable/button_shade" />
+
     <!-- Clock and date, then the quote for the current picture, on one left edge at 48dp. -->
     <LinearLayout
         android:id="@+id/topLeft"

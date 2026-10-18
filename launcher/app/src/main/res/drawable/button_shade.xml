@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A light shade in the top-right corner so the round buttons hold on bright paintings. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:type="radial"
+        android:centerX="1"
+        android:centerY="0"
+        android:gradientRadius="100%"
+        android:startColor="#4D000000"
+        android:centerColor="#1F000000"
+        android:endColor="#00000000" />
+</shape>

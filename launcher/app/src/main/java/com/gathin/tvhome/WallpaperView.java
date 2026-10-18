@@ -1,13 +1,15 @@
 package com.gathin.tvhome;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
@@ -42,9 +44,10 @@ import java.util.concurrent.Executors;
 
 /**
  * Picture backdrop: the landscape works in assets/art in shuffled order, each drifting in a slow Ken Burns
- * zoom and crossfading to the next, with a quote that changes with the picture and a scrim that keeps the
- * clock and the buttons legible. Images are decoded off the main thread at view size, and at most two are
- * in memory: the one shown and the one fading in over it.
+ * zoom and crossfading to the next, with a quote that changes with the picture. Images are decoded off the
+ * main thread at view size, and at most two are in memory: the one shown and the one fading in over it.
+ * Each picture comes with its ink: InkRule looks at the pixels under the text once, after decoding, and
+ * picks the text colour and the strength of a corner shade, which crossfade with the picture.
  */
 public class WallpaperView extends FrameLayout {
 
@@ -58,18 +61,13 @@ public class WallpaperView extends FrameLayout {
     /** Pan per axis as a fraction of the view, inside the (ZOOM - 1) / 2 margin the zoom leaves. */
     private static final float PAN = 0.03f;
     private static final float MIN_ASPECT = 1.3f;
+    /** Ink opacity of the author and caption title, and of the date and byline. */
+    private static final float AUTHOR_OPACITY = 0.75f, TITLE_OPACITY = 0.93f, SECONDARY_OPACITY = 0.72f;
     /** Longer quotes would need a fourth line. */
     private static final int MAX_QUOTE_CHARS = 140;
-    /** A light fade at the top for the buttons; the rest of the picture is left alone. */
-    private static final int[] SCRIM_COLORS = {0x4D000000, 0x1F000000, 0x00000000};
-    private static final float[] SCRIM_STOPS = {0f, 0.12f, 0.24f};
-    /** Extra shade behind the clock: an ellipse from the top-left corner, this share of the width and height. */
-    private static final int[] CLOCK_SCRIM_COLORS = {0x73000000, 0x3D000000, 0x00000000};
-    private static final float[] CLOCK_SCRIM_STOPS = {0f, 0.5f, 1f};
-    private static final float CLOCK_SCRIM_W = 0.55f, CLOCK_SCRIM_H = 0.45f;
-    /** Shade behind the caption, only when one is bound: an ellipse from the bottom-left corner. */
-    private static final int[] CAPTION_SCRIM_COLORS = {0x66000000, 0x2E000000, 0x00000000};
-    private static final float CAPTION_SCRIM_W = 0.42f, CAPTION_SCRIM_H = 0.32f;
+    /** Sample grid over the text, per end of the motion. */
+    private static final int SAMPLE_COLS = 48, SAMPLE_ROWS = 32;
+    private static final float[] SHADE_STOPS = InkRule.shadeStops();
     private static final ExecutorService DECODER = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
         r.run();
@@ -85,9 +83,11 @@ public class WallpaperView extends FrameLayout {
     private final ImageView[] layers = new ImageView[2];
     private final Bitmap[] bitmaps = new Bitmap[2];
     private final ObjectAnimator[] motion = new ObjectAnimator[2];
-    private final Paint scrim = new Paint(Paint.DITHER_FLAG);
-    private final Paint clockScrim = new Paint(Paint.DITHER_FLAG);
-    private final Paint captionScrim = new Paint(Paint.DITHER_FLAG);
+    /** Per layer: the ink for the text top left and for the caption, and the shades they come with. */
+    private final InkRule.Ink[] topInk = new InkRule.Ink[2];
+    private final InkRule.Ink[] captionInk = new InkRule.Ink[2];
+    private final Paint[] topShade = {new Paint(Paint.DITHER_FLAG), new Paint(Paint.DITHER_FLAG)};
+    private final Paint[] captionShade = {new Paint(Paint.DITHER_FLAG), new Paint(Paint.DITHER_FLAG)};
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable advance = () -> load(true);
     private final Random random = new Random();
@@ -95,9 +95,12 @@ public class WallpaperView extends FrameLayout {
     private TextView quoteText, quoteAuthor;
     private View captionBox;
     private TextView captionTitle, captionByline;
+    private TextView clock, date;
     private int front;
     private boolean running;
-    private boolean fading;
+    private ValueAnimator fade;
+    /** Progress of the crossfade to the front layer; 1 when none is running. */
+    private float fadeT = 1f;
     private boolean zoomIn = true;
     /** Uptime of the next scheduled advance, or 0 while none is scheduled. */
     private long nextAt;
@@ -129,6 +132,12 @@ public class WallpaperView extends FrameLayout {
         quoteText = text;
         quoteAuthor = author;
         box.setAlpha(0f);
+    }
+
+    /** Home only: the clock and date take the quote's ink, and the area they cover counts toward it. */
+    void bindClock(TextView clock, TextView date) {
+        this.clock = clock;
+        this.date = date;
     }
 
     /** The caption for each picture: box is faded with it, title and "Artist, year" byline are filled in. */
@@ -164,19 +173,20 @@ public class WallpaperView extends FrameLayout {
         handler.removeCallbacks(advance);
         remainingMs = nextAt > 0 ? Math.max(0, nextAt - SystemClock.uptimeMillis()) : INTERVAL_MS;
         nextAt = 0;
-        if (fading) {
-            layers[front].animate().cancel();
+        if (fade != null) {
+            fade.removeAllListeners();
+            fade.cancel();
             endFade();
         }
         if (motion[front] != null) motion[front].pause();
         if (quoteBox != null && !quotes.isEmpty() && bitmaps[front] != null) {
             quoteBox.animate().cancel();
-            setQuote(quoteIndex);
+            setQuote(quoteIndex, topInk[front]);
             quoteBox.setAlpha(1f);
         }
         if (captionBox != null && bitmaps[front] != null) {
             captionBox.animate().cancel();
-            setCaption(index);
+            setCaption(index, captionInk[front]);
             captionBox.setAlpha(1f);
         }
     }
@@ -192,10 +202,19 @@ public class WallpaperView extends FrameLayout {
         final int target = (index + (next ? 1 : 0)) % order.size();
         final String path = DIR + "/" + order.get(target)[0];
         final int w = viewWidth(), h = viewHeight();
+        final float density = getResources().getDisplayMetrics().density;
+        // The pan is picked now so the ink can be judged over the whole motion.
+        float angle = random.nextFloat() * (float) (2 * Math.PI);
+        final float dx = (float) Math.cos(angle) * PAN * w, dy = (float) Math.sin(angle) * PAN * h;
+        final float[][] topRects = quoteBox == null ? null : clock != null ? InkRule.HOME_TOP : InkRule.DREAM_TOP;
+        final float[][] captionRects = captionBox == null ? null
+                : InkRule.captionRegion(order.get(target)[1], h / density);
         final AssetManager assets = getContext().getAssets();
         DECODER.execute(() -> {
             // Decoded at full zoom so the Ken Burns drift never upscales.
             Bitmap bmp = decode(assets, path, Math.round(w * ZOOM), Math.round(h * ZOOM));
+            InkRule.Ink top = bmp == null ? null : ink(bmp, w, h, density, topRects, false, dx, dy);
+            InkRule.Ink caption = bmp == null ? null : ink(bmp, w, h, density, captionRects, true, dx, dy);
             handler.post(() -> {
                 if (token != request || !running) {
                     if (bmp != null) bmp.recycle();
@@ -207,40 +226,61 @@ public class WallpaperView extends FrameLayout {
                     return;
                 }
                 long fadeMs = next ? FADE_MS : FIRST_FADE_MS;
-                show(bmp, fadeMs);
+                show(bmp, top, caption, dx, dy, fadeMs);
                 if (next) quoteIndex++;
                 if (quoteBox != null && !quotes.isEmpty()) {
                     int q = quoteIndex;
-                    swap(quoteBox, next, fadeMs, () -> setQuote(q));
+                    swap(quoteBox, next, fadeMs, () -> setQuote(q, top));
                 }
-                if (captionBox != null) swap(captionBox, next, fadeMs, () -> setCaption(target));
+                if (captionBox != null) swap(captionBox, next, fadeMs, () -> setCaption(target, caption));
             });
         });
     }
 
-    private void show(Bitmap bmp, long fadeMs) {
+    /** The ink for rects (dp) on this picture, or null when there is no such text. */
+    private static InkRule.Ink ink(Bitmap bmp, int w, int h, float density, float[][] rects, boolean bottom,
+                                   float dx, float dy) {
+        if (rects == null) return null;
+        return InkRule.decide(InkRule.sample(bmp::getPixel, bmp.getWidth(), bmp.getHeight(), w, h, density, rects,
+                bottom, ZOOM, dx, dy, SAMPLE_COLS, SAMPLE_ROWS));
+    }
+
+    /** Fades the picture in over the last one, its shades with it, and moves the clock's ink across. */
+    private void show(Bitmap bmp, InkRule.Ink top, InkRule.Ink caption, float dx, float dy, long fadeMs) {
+        InkRule.Ink from = topInk[front] != null ? topInk[front] : top;
         front = 1 - front;
         ImageView in = layers[front];
         bitmaps[front] = bmp;
+        topInk[front] = top;
+        captionInk[front] = caption;
+        buildShades(front);
         in.setImageBitmap(bmp);
         in.setAlpha(0f);
         in.bringToFront();
-        startMotion(front);
-        fading = true;
-        in.animate().alpha(1f).setDuration(fadeMs).withEndAction(() -> {
-            endFade();
-            if (running) schedule(INTERVAL_MS);
-        }).start();
+        startMotion(front, dx, dy);
+        fadeT = 0f;
+        fade = ValueAnimator.ofFloat(0f, 1f).setDuration(fadeMs);
+        fade.addUpdateListener(a -> {
+            fadeT = (float) a.getAnimatedValue();
+            in.setAlpha(fadeT);
+            if (from != null && top != null) inkClock(from, top, fadeT);
+            invalidate();
+        });
+        fade.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                endFade();
+                if (running) schedule(INTERVAL_MS);
+            }
+        });
+        fade.start();
     }
 
     /**
-     * Zooms between 1 and ZOOM around the centre while panning in a random direction, alternating zoom in
-     * and out. Only view properties change, so the GPU redraws the same bitmap with a new transform.
+     * Zooms between 1 and ZOOM around the centre while panning by (dx, dy), alternating zoom in and out.
+     * Only view properties change, so the GPU redraws the same bitmap with a new transform.
      */
-    private void startMotion(int layer) {
-        float angle = random.nextFloat() * (float) (2 * Math.PI);
-        float dx = (float) Math.cos(angle) * PAN * viewWidth();
-        float dy = (float) Math.sin(angle) * PAN * viewHeight();
+    private void startMotion(int layer, float dx, float dy) {
         float s0 = zoomIn ? 1f : ZOOM, s1 = zoomIn ? ZOOM : 1f;
         float x0 = zoomIn ? 0f : dx, x1 = zoomIn ? dx : 0f;
         float y0 = zoomIn ? 0f : dy, y1 = zoomIn ? dy : 0f;
@@ -258,9 +298,12 @@ public class WallpaperView extends FrameLayout {
 
     /** Settles the incoming picture and drops the one it covered. */
     private void endFade() {
-        fading = false;
+        fade = null;
+        fadeT = 1f;
         layers[front].setAlpha(1f);
+        if (topInk[front] != null) inkClock(topInk[front], topInk[front], 1f);
         release(1 - front);
+        invalidate();
     }
 
     private void release(int layer) {
@@ -278,6 +321,10 @@ public class WallpaperView extends FrameLayout {
             bitmaps[layer].recycle();
             bitmaps[layer] = null;
         }
+        topInk[layer] = null;
+        captionInk[layer] = null;
+        topShade[layer].setShader(null);
+        captionShade[layer].setShader(null);
     }
 
     /** Fades box out over the first part of the crossfade, refills it, and fades it in over the rest. */
@@ -294,21 +341,71 @@ public class WallpaperView extends FrameLayout {
         }).start();
     }
 
-    private void setQuote(int i) {
+    private void setQuote(int i, InkRule.Ink ink) {
         String[] q = quotes.get(i % quotes.size());
         quoteText.setText(q[0]);
         quoteAuthor.setText("\u2014 " + q[1]);
         quoteAuthor.setVisibility(q[1].isEmpty() ? GONE : VISIBLE);
+        if (ink != null) {
+            applyInk(quoteText, ink, ink, 1f, 1f);
+            applyInk(quoteAuthor, ink, ink, 1f, AUTHOR_OPACITY);
+        }
     }
 
     /** Title, then "Artist, year" (or whichever of the two the catalog has). */
-    private void setCaption(int i) {
+    private void setCaption(int i, InkRule.Ink ink) {
+        if (ink != null) {
+            applyInk(captionTitle, ink, ink, 1f, TITLE_OPACITY);
+            applyInk(captionByline, ink, ink, 1f, SECONDARY_OPACITY);
+        }
         String[] a = order.get(i);
         String byline = a[2].isEmpty() || a[3].isEmpty() ? a[2] + a[3] : a[2] + ", " + a[3];
         captionTitle.setText(a[1]);
         captionTitle.setVisibility(a[1].isEmpty() ? GONE : VISIBLE);
         captionByline.setText(byline);
         captionByline.setVisibility(byline.isEmpty() ? GONE : VISIBLE);
+    }
+
+    /** The clock and date part way from one ink to the next. */
+    private void inkClock(InkRule.Ink from, InkRule.Ink to, float t) {
+        if (clock == null) return;
+        applyInk(clock, from, to, t, 1f);
+        applyInk(date, from, to, t, SECONDARY_OPACITY);
+    }
+
+    private static void applyInk(TextView v, InkRule.Ink from, InkRule.Ink to, float t, float opacity) {
+        int color = mix(from.color, to.color, t);
+        int alpha = Math.round((color >>> 24) * opacity);
+        v.setTextColor(alpha << 24 | color & 0xFFFFFF);
+        v.setShadowLayer(from.shadowRadius + (to.shadowRadius - from.shadowRadius) * t,
+                0, from.shadowDy + (to.shadowDy - from.shadowDy) * t, mix(from.shadowColor, to.shadowColor, t));
+    }
+
+    private static int mix(int a, int b, float t) {
+        int out = 0;
+        for (int shift = 0; shift <= 24; shift += 8) {
+            int ca = (a >>> shift) & 0xFF, cb = (b >>> shift) & 0xFF;
+            out |= Math.round(ca + (cb - ca) * t) << shift;
+        }
+        return out;
+    }
+
+    /** The layer's shades: ellipses from the top-left and bottom-left corners, as its inks call for. */
+    private void buildShades(int layer) {
+        int w = viewWidth(), h = viewHeight();
+        float density = getResources().getDisplayMetrics().density;
+        topShade[layer].setShader(shade(topInk[layer], 0, InkRule.TOP_RX_DP * density, InkRule.TOP_RY_DP * density));
+        captionShade[layer].setShader(shade(captionInk[layer], h,
+                InkRule.CAPTION_RX_DP * density, InkRule.CAPTION_RY_DP * density));
+    }
+
+    private static Shader shade(InkRule.Ink ink, float cy, float rx, float ry) {
+        if (ink == null || !ink.shaded()) return null;
+        RadialGradient g = new RadialGradient(0, cy, rx, InkRule.shadeColors(ink), SHADE_STOPS, Shader.TileMode.CLAMP);
+        Matrix squash = new Matrix();
+        squash.setScale(1f, ry / rx, 0, cy);
+        g.setLocalMatrix(squash);
+        return g;
     }
 
     private int viewWidth() {
@@ -417,29 +514,29 @@ public class WallpaperView extends FrameLayout {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        scrim.setShader(new LinearGradient(0, 0, 0, h, SCRIM_COLORS, SCRIM_STOPS, Shader.TileMode.CLAMP));
-        float rw = w * CLOCK_SCRIM_W, rh = h * CLOCK_SCRIM_H;
-        RadialGradient clock = new RadialGradient(0, 0, rw, CLOCK_SCRIM_COLORS, CLOCK_SCRIM_STOPS, Shader.TileMode.CLAMP);
-        Matrix squash = new Matrix();
-        squash.setScale(1f, rh / rw);
-        clock.setLocalMatrix(squash);
-        clockScrim.setShader(clock);
-        float cw = w * CAPTION_SCRIM_W, ch = h * CAPTION_SCRIM_H;
-        RadialGradient caption = new RadialGradient(0, h, cw, CAPTION_SCRIM_COLORS, CLOCK_SCRIM_STOPS, Shader.TileMode.CLAMP);
-        Matrix squashCaption = new Matrix();
-        squashCaption.setScale(1f, ch / cw, 0, h);
-        caption.setLocalMatrix(squashCaption);
-        captionScrim.setShader(caption);
+        for (int i = 0; i < 2; i++) buildShades(i);
     }
 
+    /** Each layer's shades over the pictures, the outgoing one fading out as the incoming one fades in. */
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-        canvas.drawRect(0, 0, getWidth(), getHeight() * SCRIM_STOPS[SCRIM_STOPS.length - 1], scrim);
-        canvas.drawRect(0, 0, getWidth() * CLOCK_SCRIM_W, getHeight() * CLOCK_SCRIM_H, clockScrim);
-        if (captionBox != null) {
-            canvas.drawRect(0, getHeight() * (1 - CAPTION_SCRIM_H), getWidth() * CAPTION_SCRIM_W, getHeight(), captionScrim);
+        float density = getResources().getDisplayMetrics().density;
+        float topW = InkRule.TOP_RX_DP * density, topH = InkRule.TOP_RY_DP * density;
+        float capW = InkRule.CAPTION_RX_DP * density, capH = InkRule.CAPTION_RY_DP * density;
+        int h = getHeight();
+        for (int i = 0; i < 2; i++) {
+            float a = i == front ? fadeT : 1 - fadeT;
+            if (bitmaps[i] == null || a <= 0) continue;
+            drawShade(canvas, topShade[i], a, 0, 0, topW, topH);
+            drawShade(canvas, captionShade[i], a, 0, h - capH, capW, h);
         }
+    }
+
+    private static void drawShade(Canvas canvas, Paint p, float alpha, float l, float t, float r, float b) {
+        if (p.getShader() == null) return;
+        p.setAlpha(Math.round(alpha * 255));
+        canvas.drawRect(l, t, r, b, p);
     }
 
     @Override

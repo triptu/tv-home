@@ -29,7 +29,8 @@ import javax.imageio.ImageIO;
 
 /**
  * Proves InkRule on every landscape picture the home screen shows: at 1280x720 and density 1.33, over the
- * Ken Burns motion in eight pan directions, the quote reaches 4.5:1 after the shade as it is composited.
+ * Ken Burns motion in eight pan directions, every block of text (clock, date, quote, author) reaches 4.5:1
+ * after the shade as it is composited.
  * Prints a table; with -PinkSheet=path it also renders a contact sheet of every home screen.
  */
 public class InkRuleTest {
@@ -46,22 +47,25 @@ public class InkRuleTest {
         StringBuilder table = new StringBuilder(String.format(Locale.ROOT, "%-44s %-10s %5s %6s | %-10s %5s %6s | %-10s %5s %6s%n",
                 "file", "home", "alpha", "ratio", "saver", "alpha", "ratio", "caption", "alpha", "ratio"));
         List<String> failures = new ArrayList<>();
-        double maxAlpha = 0;
+        double maxAlpha = 0, maxVeil = 0;
         List<Thumb> thumbs = new ArrayList<>();
         for (String[] p : pictures) {
             BufferedImage img = ImageIO.read(new File(ASSETS, "art/" + p[0]));
             Result home = worst(img, InkRule.HOME_TOP, false);
             Result saver = worst(img, InkRule.DREAM_TOP, false);
             Result caption = worst(img, InkRule.captionRegion(p[1], H / DENSITY), true);
-            for (Result r : new Result[]{home, saver, caption}) maxAlpha = Math.max(maxAlpha, r.ink.alpha);
+            for (Result r : new Result[]{home, saver, caption}) {
+                maxAlpha = Math.max(maxAlpha, r.ink.alpha);
+                maxVeil = Math.max(maxVeil, r.ink.veil);
+            }
             table.append(String.format(Locale.ROOT, "%-44s %s | %s | %s%n", p[0], home, saver, caption));
             if (home.ratio < InkRule.TARGET) failures.add(p[0] + " home " + home);
             if (saver.ratio < InkRule.TARGET) failures.add(p[0] + " screensaver " + saver);
             if (caption.ratio < InkRule.TARGET) failures.add(p[0] + " caption " + caption);
             thumbs.add(new Thumb(p[0], img, home));
         }
-        table.append(String.format(Locale.ROOT, "max alpha %.3f (cap %.2f, overlay alpha %.3f)%n",
-                maxAlpha, InkRule.MAX_ALPHA, InkRule.overlayAlpha(maxAlpha)));
+        table.append(String.format(Locale.ROOT, "max alpha %.3f (cap %.2f, overlay alpha %.3f), max veil %.3f (cap %.2f)%n",
+                maxAlpha, InkRule.MAX_ALPHA, InkRule.overlayAlpha(maxAlpha), maxVeil, InkRule.MAX_VEIL));
         System.out.print(table);
         Files.write(new File("build/ink-report.txt").toPath(), table.toString().getBytes(StandardCharsets.UTF_8));
 
@@ -84,17 +88,12 @@ public class InkRuleTest {
         return worst;
     }
 
-    /** Contrast of the ink against the worst relevant percentile once the drawn shade is composited. */
+    /** Contrast of the ink against the worst block's relevant percentile once the drawn shade is composited. */
     static double achieved(InkRule.Samples s, InkRule.Ink ink) {
-        double[] lum = new double[s.argb.length];
-        for (int i = 0; i < lum.length; i++) {
-            float a = (float) InkRule.shadeAlphaAt(ink.alpha, s.reach[i]);
-            lum[i] = InkRule.luminance(InkRule.blend(0xFF000000, s.argb[i], a));
-        }
-        Arrays.sort(lum);
+        double[] lum = InkRule.drawn(s, ink.alpha, ink.veil);
         return ink.dark()
-                ? InkRule.contrast(InkRule.percentile(lum, 0.1), InkRule.luminance(InkRule.DARK_INK))
-                : InkRule.contrast(InkRule.percentile(lum, 0.9), InkRule.inkLuminance(InkRule.LIGHT_INK));
+                ? InkRule.contrast(InkRule.worst(lum, s.blocks, 0.1), InkRule.luminance(InkRule.DARK_INK))
+                : InkRule.contrast(InkRule.worst(lum, s.blocks, 0.9), InkRule.inkLuminance(InkRule.LIGHT_INK));
     }
 
     private static final class Result {
@@ -108,7 +107,9 @@ public class InkRuleTest {
 
         @Override
         public String toString() {
-            return String.format(Locale.ROOT, "%-10s %5.2f %6.2f%s", ink.mode, ink.alpha, ratio, ink.floor ? " floor" : "");
+            String shade = ink.veil > 0 ? String.format(Locale.ROOT, "v%4.2f", ink.veil)
+                    : String.format(Locale.ROOT, "%5.2f", ink.alpha);
+            return String.format(Locale.ROOT, "%-10s %s %6.2f%s", ink.mode, shade, ratio, ink.floor ? " floor" : "");
         }
     }
 
@@ -182,11 +183,12 @@ public class InkRuleTest {
         g.drawImage(t.img, (TW - dw) / 2, (TH - dh) / 2, dw, dh, null);
         InkRule.Ink ink = t.home.ink;
         float rx = InkRule.TOP_RX_DP * DENSITY, ry = InkRule.TOP_RY_DP * DENSITY;
+        int[] stops = InkRule.stopAlphas(ink.alpha, ink.veil);
         for (int y = 0; y < TH; y++) {
             for (int x = 0; x < TW; x++) {
                 double reach = Math.hypot(x / K / rx, y / K / ry);
                 if (reach >= 1) continue;
-                img.setRGB(x, y, InkRule.blend(0xFF000000, img.getRGB(x, y), (float) InkRule.shadeAlphaAt(ink.alpha, reach)));
+                img.setRGB(x, y, InkRule.blend(ink.veil > 0 ? 0xFFFFFFFF : 0xFF000000, img.getRGB(x, y), (float) InkRule.drawnAlpha(stops, reach)));
             }
         }
 
@@ -238,8 +240,9 @@ public class InkRuleTest {
         }
         g.drawImage(inked, 0, 0, null);
 
-        String label = String.format(Locale.ROOT, "%s  %s  a=%.2f  %.2f:1%s", t.file, ink.mode, ink.alpha, t.home.ratio,
-                ink.floor ? " floor" : "");
+        String label = String.format(Locale.ROOT, "%s  %s  %s  %.2f:1%s", t.file, ink.mode,
+                ink.veil > 0 ? String.format(Locale.ROOT, "veil=%.2f", ink.veil) : String.format(Locale.ROOT, "a=%.2f", ink.alpha),
+                t.home.ratio, ink.floor ? " floor" : "");
         g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
         g.setColor(new Color(0, 0, 0, 170));
         g.fillRect(0, TH - 16, TW, 16);
