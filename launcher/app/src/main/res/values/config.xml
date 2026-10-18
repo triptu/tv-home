@@ -5,12 +5,10 @@
 -->
 <resources>
 
-    <!-- Apps pinned to the dock at the bottom, in this order. Missing apps are skipped; five fit best. -->
+    <!-- Apps pinned to the dock at the bottom, in this order. Missing apps are skipped. -->
     <string-array name="dock_apps">
         <item>com.google.android.youtube.tv</item>
         <item>com.netflix.ninja</item>
-        <item>com.amazon.amazonvideo.livingroom</item>
-        <item>in.startv.hotstar</item>
         <item>com.google.android.youtube.tvmusic</item>
     </string-array>
 
