@@ -7,6 +7,7 @@ import Observation
     private(set) var operation = Operation.idle
     private(set) var phone: Phone?
     private var adb: ADB
+    private var inFlight = 0
     private let settingsURL = URL.applicationSupportDirectory.appending(path: "TVRemote/settings.json")
 
     init() {
@@ -22,7 +23,9 @@ import Observation
             let request = try CommandRequest(id: id, urlText: url, settings: settings)
             operation = .running(id)
             let executor = adb
+            inFlight += 1
             let result = await executor.perform(request)
+            inFlight -= 1
             receipt = result.0
             if executor === adb { snapshot = result.1 }
         } catch {
@@ -51,7 +54,7 @@ import Observation
     }
 
     func save(_ new: Settings) throws {
-        if case .running = operation { throw Refusal("Wait for the current command to finish") }
+        guard inFlight == 0 else { throw Refusal("Wait for the current command to finish") }
         try FileManager.default.createDirectory(at: settingsURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try JSONEncoder().encode(new).write(to: settingsURL, options: .atomic)
         settings = new

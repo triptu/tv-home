@@ -77,6 +77,13 @@ enum Connection: Sendable, Equatable {
         }
     }
 
+    var looksStale: Bool {
+        switch self {
+        case .unreachable, .reachableUnknown: true
+        case .unchecked, .standby, .awake: false
+        }
+    }
+
     var summary: String {
         switch self {
         case .unchecked: "Not checked yet"

@@ -128,7 +128,7 @@ actor ADB {
         walk: for step in steps {
             do {
                 switch step {
-                case .connect(let deadline): try await connect(within: deadline, fresh: request.command.action == .reconnect)
+                case .connect(let deadline): try await connect(within: deadline, fresh: request.command.action == .reconnect && snapshot.connection.looksStale)
                 case .wakeOnLAN:
                     do { try sendMagicPacket() } catch { note = error.reason }
                 case .startSunshine: try await startSunshine()
@@ -213,9 +213,9 @@ actor ADB {
                 snapshot = Snapshot(Connection.parse(output))
             } catch RunError.unrunnable(let reason) {
                 snapshot = Snapshot(.unreachable(reason))
-            } catch where expect != nil {
+            } catch {
                 snapshot = Snapshot(.reachableUnknown("Status check failed"))
-            } catch {}
+            }
             guard let expect else { return nil }
             if expect.met(by: snapshot.connection) { return Receipt(.observed, expect.observed) }
             if ContinuousClock.now >= end { return Receipt(.unknown, expect.unconfirmed) }

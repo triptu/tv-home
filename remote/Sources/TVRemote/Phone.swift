@@ -134,8 +134,8 @@ struct HTTPRequest: Sendable {
                 case .complete(let request):
                     guard self.receiving.remove(id) != nil else { return }
                     self.responding.insert(id)
-                    // The slowest plan is a wake with a 20 s connect plus probes.
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 45) { [weak self] in
+                    // Every step has its own deadline, so this only guards a respond that never returns.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 120) { [weak self] in
                         MainActor.assumeIsolated { if self?.responding.contains(id) == true { self?.close(connection) } }
                     }
                     Task {
