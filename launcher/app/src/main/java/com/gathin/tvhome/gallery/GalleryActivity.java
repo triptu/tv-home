@@ -15,6 +15,9 @@ import android.view.WindowManager;
  */
 public class GalleryActivity extends Activity {
 
+    /** Optional extra: the art/ file name to hang first, e.g. the painting the home screen shows. */
+    public static final String EXTRA_START_FILE = "start_file";
+
     private static final long ADVANCE_MS = 3 * 60_000L;
     private static final float QUOTE_CHANCE = 0f;
 
@@ -25,6 +28,7 @@ public class GalleryActivity extends Activity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         wall = new ArtWallView(this, ADVANCE_MS, QUOTE_CHANCE);
+        wall.startWith(getIntent().getStringExtra(EXTRA_START_FILE));
         setContentView(wall);
         hideSystemBars();
     }

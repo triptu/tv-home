@@ -27,11 +27,26 @@ final class ArtPlaylist {
     private final float quoteChance;
     private final List<Object> history = new ArrayList<>();
     private int position = -1;
+    /** Shown before the first pick, then the shuffle carries on as usual. */
+    private Artwork first;
 
     ArtPlaylist(List<Artwork> art, List<Quote> quoteList, float quoteChance) {
         for (Artwork a : art) (a.space ? space : paintings).items.add(a);
         if (quoteChance > 0) quotes.items.addAll(quoteList);
         this.quoteChance = quoteChance;
+    }
+
+    /** Hangs the piece with this asset file name (e.g. "hokusai_great_wave.jpg") first, if there is one. */
+    void startWith(String file) {
+        if (file == null) return;
+        List<Artwork> all = new ArrayList<>(paintings.items);
+        all.addAll(space.items);
+        for (Artwork a : all) {
+            if (a.path.endsWith("/" + file)) {
+                first = a;
+                return;
+            }
+        }
     }
 
     boolean isEmpty() {
@@ -41,7 +56,8 @@ final class ArtPlaylist {
     /** The next slide: forward through history first, then a fresh pick. Null when there is nothing. */
     Object next() {
         if (position < history.size() - 1) return history.get(++position);
-        Object slide = pick();
+        Object slide = first != null ? first : pick();
+        first = null;
         if (slide == null) return null;
         history.add(slide);
         if (history.size() > HISTORY) history.remove(0);

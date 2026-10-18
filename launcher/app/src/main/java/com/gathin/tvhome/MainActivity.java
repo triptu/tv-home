@@ -37,13 +37,15 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Art-first home: a rotating painting, a quiet clock, three round buttons, the quote and a small dock. The
+ * Art-first home: a rotating painting, a quiet clock, round buttons, the quote and a small dock. The
  * other apps sit in a panel that slides up over the art. One glass highlight springs between tiles.
  */
 public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /** Started by name: the gallery is built separately and may not be in every build. */
     private static final String GALLERY_ACTIVITY = "com.gathin.tvhome.gallery.GalleryActivity";
+    /** GalleryActivity.EXTRA_START_FILE: the painting to hang first. */
+    private static final String EXTRA_START_FILE = "start_file";
     private static final long PANEL_MS = 220;
 
     // Static so they survive the activity being destroyed while another app is open (low-memory TVs,
@@ -125,10 +127,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             s.setSpring(new SpringForce().setStiffness(320f).setDampingRatio(0.62f));
         }
 
-        View btnGallery = findViewById(R.id.btnGallery);
+        View btnArt = findViewById(R.id.btnArt);
         View btnInputs = findViewById(R.id.btnInputs);
         View btnSettings = findViewById(R.id.btnSettings);
-        btnGallery.setOnClickListener(v -> open(new Intent().setClassName(getPackageName(), GALLERY_ACTIVITY)));
+        // Art mode opens on the painting the home screen is showing, fresh even if an old one was left open.
+        btnArt.setOnClickListener(v -> open(new Intent().setClassName(getPackageName(), GALLERY_ACTIVITY)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                .putExtra(EXTRA_START_FILE, wallpaper.currentFile())));
         btnInputs.setOnClickListener(v -> showInputs());
         btnSettings.setOnClickListener(v -> open(new Intent(Settings.ACTION_SETTINGS)));
 
@@ -142,7 +147,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     focusDock(dockAdapter.positionOf(lastDockKey) >= 0 ? dockAdapter.positionOf(lastDockKey) : lastDockSlot);
                     return true;
                 case KeyEvent.KEYCODE_DPAD_LEFT:
-                    return v.getId() == R.id.btnGallery;
+                    return v.getId() == R.id.btnArt;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                     return v.getId() == R.id.btnSettings;
                 default:
@@ -154,7 +159,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             v.animate().scaleX(s).scaleY(s).setDuration(150).setInterpolator(ease).start();
             if (focused) lastButtonId = v.getId();
         };
-        for (View b : new View[]{btnGallery, btnInputs, btnSettings}) {
+        for (View b : new View[]{btnArt, btnInputs, btnSettings}) {
             b.setOnKeyListener(buttonKeys);
             b.setOnFocusChangeListener(buttonFocus);
         }

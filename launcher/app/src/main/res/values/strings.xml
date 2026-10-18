@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Home</string>
-    <string name="gallery">Gallery</string>
+    <string name="art_mode">Art mode</string>
     <string name="inputs">Inputs</string>
     <string name="all_apps">All apps</string>
     <string name="settings">Settings</string>

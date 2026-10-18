@@ -131,6 +131,11 @@ public class WallpaperView extends FrameLayout {
         box.setAlpha(0f);
     }
 
+    /** Asset file name (in art/) of the picture shown, or null before the first one. */
+    String currentFile() {
+        return order.isEmpty() ? null : order.get(index);
+    }
+
     /** Shows the current picture (decoding it first if this view has none yet) and resumes the rotation. */
     void start() {
         if (running || order.isEmpty()) return;

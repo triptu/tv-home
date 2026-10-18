@@ -110,6 +110,11 @@ public final class ArtWallView extends FrameLayout {
                 Gravity.TOP | Gravity.START));
     }
 
+    /** Makes the piece with this asset file name the first one hung; call before {@link #start()}. */
+    public void startWith(String file) {
+        playlist.startWith(file);
+    }
+
     /** Hangs the first piece, or resumes the timer. */
     public void start() {
         running = true;
