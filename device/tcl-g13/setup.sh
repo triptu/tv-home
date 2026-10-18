@@ -12,4 +12,7 @@ $ADB shell cmd package set-home-activity --user 0 com.gathin.tvhome/.MainActivit
 $ADB shell settings put secure screensaver_enabled 1
 $ADB shell settings put secure screensaver_components com.gathin.tvhome/.gallery.ArtDream
 $ADB shell settings put global no_signal_auto_power_off 0
+$ADB shell settings put global window_animation_scale 0
+$ADB shell settings put global transition_animation_scale 0
+$ADB shell settings put global animator_duration_scale 0
 $ADB shell input keyevent KEYCODE_HOME

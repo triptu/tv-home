@@ -1,3 +1,10 @@
 com.google.android.apps.tv.launcherx
 com.tcl.partnercustomizer
 com.google.android.tungsten.setupwraith
+com.google.android.apps.tv.dreamx
+com.android.adservices.api
+com.android.ondevicepersonalization.services
+com.android.federatedcompute.services
+com.google.android.partnersetup
+com.tcl.useragreement
+com.tcl.keyhelp
