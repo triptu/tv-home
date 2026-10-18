@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Outline;
@@ -241,6 +242,8 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
                 }
             });
             card.setClipToOutline(true);
+            // The spot shadow shows through the translucent card as a hard-edged grey box; the ambient one stays.
+            card.setOutlineSpotShadowColor(Color.TRANSPARENT);
             card.setLayerType(View.LAYER_TYPE_HARDWARE, null);
             setLevel(0f);
 
