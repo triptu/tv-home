@@ -1,13 +1,38 @@
-import Foundation
+import SwiftUI
 
 @main enum Main {
     static func main() {
         let arguments = Array(CommandLine.arguments.dropFirst())
+        guard arguments.contains(where: { ["--probe", "--run"].contains($0) }) else { return TVRemoteApp.main() }
         Task { @MainActor in
             await commandLine(arguments)
             exit(0)
         }
         dispatchMain()
+    }
+}
+
+struct TVRemoteApp: App {
+    @State private var remote = Remote()
+
+    var body: some Scene {
+        MenuBarExtra {
+            RemoteView(remote: remote)
+        } label: {
+            Image(systemName: remote.snapshot.connection.symbol)
+        }
+        .menuBarExtraStyle(.window)
+        SwiftUI.Settings { SettingsView(remote: remote) }
+    }
+}
+
+extension Connection {
+    var symbol: String {
+        switch self {
+        case .awake: "tv.fill"
+        case .standby: "tv"
+        case .unchecked, .unreachable, .reachableUnknown: "tv.slash"
+        }
     }
 }
 
