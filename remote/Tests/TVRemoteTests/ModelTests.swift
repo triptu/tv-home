@@ -26,6 +26,7 @@ private func steps(_ id: String, _ snapshot: Snapshot, url: String? = nil, setti
     #expect(available("netflix", .standby) && !available("netflix", .unreachable("x")))
     #expect(!available("stream", awake.connection))
     #expect(Command.named("stream")!.unavailable(in: awake.connection, settings: paired) == nil)
+    #expect(Command.named("stream")!.unavailable(in: .standby, settings: paired) == nil)
 }
 
 @Test func parsesProbeOutput() {
@@ -40,7 +41,7 @@ private func steps(_ id: String, _ snapshot: Snapshot, url: String? = nil, setti
 }
 
 @Test func plansFollowState() throws {
-    #expect(try steps("volume_up", awake) == [.shell("input keyevent KEYCODE_VOLUME_UP"), .probe(until: nil)])
+    #expect(try steps("volume_up", awake) == [.shell("input keyevent KEYCODE_VOLUME_UP")])
     #expect(try steps("netflix", Snapshot(.standby)) == [
         .shell("input keyevent KEYCODE_WAKEUP"),
         .launch(package: "com.netflix.ninja", fallback: "com.netflix.ninja/.MainActivity"),
@@ -79,4 +80,46 @@ private func steps(_ id: String, _ snapshot: Snapshot, url: String? = nil, setti
     #expect(resolvedComponent(output, package: "com.netflix.ninja") == "com.netflix.ninja/.MainActivity")
     #expect(resolvedComponent(output, package: "com.limelight") == nil)
     #expect(resolvedComponent("No activity found", package: "com.netflix.ninja") == nil)
+}
+
+@Test func settingsWithMissingKeysKeepDefaults() throws {
+    let decoded = try JSONDecoder().decode(Settings.self, from: Data(#"{"device":{"name":"Den"},"stream":{"appID":"7"}}"#.utf8))
+    #expect(decoded.device == Device(name: "Den"))
+    #expect(decoded.stream == StreamTarget(appID: "7"))
+    #expect(decoded.adbPath == Settings().adbPath)
+}
+
+private enum Parsed: Equatable {
+    case incomplete, invalid(Int), complete(method: String, path: String, host: String?, body: String)
+}
+
+private func parsed(_ chunks: [String]) -> Parsed {
+    var buffer = Data()
+    var result = Parsed.incomplete
+    for chunk in chunks {
+        buffer += Data(chunk.utf8)
+        result = switch HTTPRequest.parse(buffer) {
+        case .incomplete: .incomplete
+        case .invalid(let status): .invalid(status)
+        case .complete(let request):
+            .complete(method: request.method, path: request.path, host: request.headers["host"], body: String(decoding: request.body, as: UTF8.self))
+        }
+    }
+    return result
+}
+
+@Test func parsesHTTPRequests() {
+    let post = "POST /api/command HTTP/1.1\r\nHost: m:8765\r\nContent-Length: 11\r\n\r\n"
+    let cases: [([String], Parsed)] = [
+        (["GET / HTTP/1.1\r\nHost: m:8765\r\n\r\n"], .complete(method: "GET", path: "/", host: "m:8765", body: "")),
+        ([post + #"{"id":"#], .incomplete),
+        ([post + #"{"id":"#, #""ok"}"#], .complete(method: "POST", path: "/api/command", host: "m:8765", body: #"{"id":"ok"}"#)),
+        (["GET / HTTP/1.1\r\nAccept: */*\r\n\r\n"], .complete(method: "GET", path: "/", host: nil, body: "")),
+        (["GET / HTTP/1.1\r\nX: " + String(repeating: "a", count: 9000)], .invalid(431)),
+        (["POST / HTTP/1.1\r\nContent-Length: -1\r\n\r\n"], .invalid(413)),
+        (["POST / HTTP/1.1\r\nContent-Length: 5000\r\n\r\n"], .invalid(413)),
+    ]
+    for (chunks, expected) in cases {
+        #expect(parsed(chunks) == expected, "\(chunks)")
+    }
 }

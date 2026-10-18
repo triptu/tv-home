@@ -24,6 +24,37 @@ struct Settings: Codable, Sendable, Equatable {
     var adb: URL { URL(fileURLWithPath: NSString(string: adbPath).expandingTildeInPath) }
 }
 
+// Synthesized decoding throws on a missing key, which would reset every saved file whenever a field is added.
+extension Device {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init()
+        name = try container.decodeIfPresent(String.self, forKey: .name) ?? name
+        host = try container.decodeIfPresent(String.self, forKey: .host) ?? host
+        port = try container.decodeIfPresent(UInt16.self, forKey: .port) ?? port
+        mac = try container.decodeIfPresent(String.self, forKey: .mac) ?? mac
+    }
+}
+
+extension StreamTarget {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init()
+        hostUUID = try container.decodeIfPresent(String.self, forKey: .hostUUID) ?? hostUUID
+        appID = try container.decodeIfPresent(String.self, forKey: .appID) ?? appID
+    }
+}
+
+extension Settings {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init()
+        device = try container.decodeIfPresent(Device.self, forKey: .device) ?? device
+        adbPath = try container.decodeIfPresent(String.self, forKey: .adbPath) ?? adbPath
+        stream = try container.decodeIfPresent(StreamTarget.self, forKey: .stream) ?? stream
+    }
+}
+
 enum Connection: Sendable, Equatable {
     case unchecked
     case unreachable(String)
@@ -77,9 +108,10 @@ enum Operation: Equatable {
     case finished(Receipt)
 }
 
-struct Refusal: Error {
+struct Refusal: LocalizedError {
     let reason: String
     init(_ reason: String) { self.reason = reason }
+    var errorDescription: String? { reason }
 }
 
 enum Group: String, Sendable { case power, volume, media, pad, nav, apps, stream, url }
@@ -149,8 +181,8 @@ struct Command: Sendable, Identifiable {
         switch action {
         case .reconnect: .any
         case .wake: .notAwake
-        case .launch: .awakeOrStandby
-        case .sleep, .stream, .url, .key: .awake
+        case .launch, .stream, .url: .awakeOrStandby
+        case .sleep, .key: .awake
         }
     }
 
@@ -245,7 +277,7 @@ func plan(_ request: CommandRequest, _ snapshot: Snapshot, settings: Settings) t
     case (.sleep, _):
         return [.shell(keyevent("SLEEP")), .probe(until: .standby)]
     case (.key(let code), _):
-        return [.shell(keyevent(code)), .probe(until: nil)]
+        return [.shell(keyevent(code))]
     // WAKEUP is a no-op when awake, but it ends a screensaver, which otherwise covers the launched activity.
     case (.launch(let package, let fallback), _):
         return [.shell(keyevent("WAKEUP")), .launch(package: package, fallback: fallback), .probe(until: .foreground(package))]

@@ -3,6 +3,7 @@ import Foundation
 enum RunError: Error {
     case timedOut
     case failed(String)
+    case unrunnable(String)
 }
 
 private final class Capture: @unchecked Sendable {
@@ -11,7 +12,7 @@ private final class Capture: @unchecked Sendable {
     private var open: Int
     private var status: Int32?
     private var finished = false
-    var timedOut = false
+    private var timedOut = false
     var continuation: CheckedContinuation<String, Error>?
 
     init(open: Int) { self.open = open }
@@ -32,8 +33,16 @@ private final class Capture: @unchecked Sendable {
     }
 
     func fail(_ error: Error) {
-        lock.withLock { status = -1; output[1] = Data(error.localizedDescription.utf8) }
-        finish()
+        lock.withLock { finished = true }
+        continuation?.resume(throwing: RunError.unrunnable(error.localizedDescription))
+    }
+
+    func markTimedOut() -> Bool {
+        lock.withLock {
+            guard status == nil else { return true }
+            timedOut = true
+            return false
+        }
     }
 
     private func finishIfDone() { if lock.withLock({ status != nil && open == 0 }) { finish() } }
@@ -73,8 +82,7 @@ func run(_ executable: URL, _ arguments: [String], deadline: Duration, quiet: Bo
         do { try process.run() } catch { return capture.fail(error) }
         let seconds = Double(deadline.components.seconds) + Double(deadline.components.attoseconds) * 1e-18
         DispatchQueue.global().asyncAfter(deadline: .now() + seconds) {
-            guard process.isRunning else { return }
-            capture.timedOut = true
+            if capture.markTimedOut() { return }
             process.terminate()
             DispatchQueue.global().asyncAfter(deadline: .now() + 1) {
                 if process.isRunning { kill(process.processIdentifier, SIGKILL) }
@@ -116,28 +124,46 @@ actor ADB {
         let steps: [Step]
         do { steps = try plan(request, snapshot, settings: settings) } catch { return (Receipt(.failed, error.reason), snapshot) }
         var receipt = Receipt(.sent, "\(request.command.label) sent")
-        do {
-            for step in steps {
+        var note: String?
+        walk: for step in steps {
+            do {
                 switch step {
-                case .connect(let deadline): try await connect(within: deadline)
-                case .wakeOnLAN: try await sendMagicPacket()
-                case .startSunshine: _ = try await run(URL(fileURLWithPath: "/usr/bin/open"), ["-g", "-a", "Sunshine"], deadline: .seconds(4))
+                case .connect(let deadline): try await connect(within: deadline, fresh: request.command.action == .reconnect)
+                case .wakeOnLAN:
+                    do { try sendMagicPacket() } catch { note = error.reason }
+                case .startSunshine: try await startSunshine()
                 case .shell(let command): try await shell(command)
                 case .launch(let package, let fallback): try await shell("am start -n \(quote(await component(package, fallback: fallback)))")
                 case .probe(let expect): receipt = await probe(until: expect) ?? receipt
                 }
+            } catch RunError.timedOut {
+                receipt = Receipt(.unknown, "Result unknown. Check the TV before trying again.")
+                break walk
+            } catch {
+                switch step {
+                case .connect:
+                    snapshot = Snapshot(.unreachable(describe(error)))
+                    receipt = Receipt(.failed, "TV did not answer. Reconnect.")
+                case .shell, .launch:
+                    receipt = Receipt(.failed, describe(error))
+                    if case .probe = steps.last { _ = await probe(until: nil) }
+                default:
+                    receipt = Receipt(.failed, describe(error))
+                }
+                break walk
             }
-            if request.command.action == .reconnect { receipt = Receipt(.observed, snapshot.connection.summary) }
-        } catch RunError.timedOut {
-            receipt = Receipt(.unknown, "Result unknown. Check the TV before trying again.")
-        } catch let refusal as Refusal {
-            receipt = Receipt(.failed, refusal.reason)
-        } catch {
-            let reason = if case RunError.failed(let message) = error { message } else { error.localizedDescription }
-            snapshot = Snapshot(.unreachable(reason))
-            receipt = Receipt(.failed, "TV did not answer. Reconnect.")
         }
+        if request.command.action == .reconnect, receipt.kind == .sent { receipt = Receipt(.observed, snapshot.connection.summary) }
+        if let note { receipt = Receipt(receipt.kind, receipt.message + (receipt.message.hasSuffix(".") ? " " : ". ") + note) }
         return (receipt, snapshot)
+    }
+
+    private func describe(_ error: Error) -> String {
+        switch error {
+        case let refusal as Refusal: refusal.reason
+        case RunError.failed(let message), RunError.unrunnable(let message): message
+        default: error.localizedDescription
+        }
     }
 
     @discardableResult
@@ -149,7 +175,7 @@ actor ADB {
         return output
     }
 
-    private func connect(within deadline: Duration) async throws {
+    private func connect(within deadline: Duration, fresh: Bool) async throws {
         guard FileManager.default.isExecutableFile(atPath: settings.adb.path) else {
             throw RunError.failed("adb not found at \(settings.adbPath). Set its path in Settings.")
         }
@@ -157,6 +183,8 @@ actor ADB {
             _ = try? await run(settings.adb, ["start-server"], deadline: .seconds(8), quiet: true)
             serverStarted = true
         }
+        // adb keeps a dropped TV as "offline" and answers "already connected" until the transport is cleared.
+        if fresh { _ = try? await run(settings.adb, ["disconnect", settings.device.serial], deadline: .seconds(4)) }
         let end = ContinuousClock.now + deadline
         var reason = "TV did not answer"
         repeat {
@@ -183,9 +211,11 @@ actor ADB {
             do {
                 let output = try await shell("dumpsys power | grep mWakefulness=; dumpsys activity activities | grep topResumedActivity; true")
                 snapshot = Snapshot(Connection.parse(output))
-            } catch {
+            } catch RunError.unrunnable(let reason) {
+                snapshot = Snapshot(.unreachable(reason))
+            } catch where expect != nil {
                 snapshot = Snapshot(.reachableUnknown("Status check failed"))
-            }
+            } catch {}
             guard let expect else { return nil }
             if expect.met(by: snapshot.connection) { return Receipt(.observed, expect.observed) }
             if ContinuousClock.now >= end { return Receipt(.unknown, expect.unconfirmed) }
@@ -201,22 +231,33 @@ actor ADB {
         return component
     }
 
-    private func sendMagicPacket() async throws {
-        let mac = settings.device.mac.split(separator: ":").compactMap { UInt8($0, radix: 16) }
-        guard mac.count == 6 else { throw Refusal("The MAC address in Settings is not valid") }
+    private func startSunshine() async throws(Refusal) {
+        do { _ = try await run(URL(fileURLWithPath: "/usr/bin/open"), ["-g", "-a", "Sunshine"], deadline: .seconds(4)) }
+        catch { throw Refusal("Sunshine could not be started") }
+        let end = ContinuousClock.now + .seconds(10)
+        // open returns once Launch Services accepts the request, before Sunshine listens for Moonlight.
+        while !listening(onLocalPort: 47989) {
+            guard ContinuousClock.now < end else { throw Refusal("Sunshine did not start") }
+            try? await Task.sleep(for: .milliseconds(500))
+        }
+    }
+
+    private func sendMagicPacket() throws(Refusal) {
+        let parts = settings.device.mac.split(separator: ":")
+        let mac = parts.compactMap { UInt8($0, radix: 16) }
+        guard parts.count == 6, mac.count == 6 else { throw Refusal("Wake-on-LAN not sent: the MAC address in Settings is not valid") }
         let packet = Data(repeating: 0xFF, count: 6) + Data((0..<16).flatMap { _ in mac })
         // Home LANs are /24; a subnet broadcast reaches a TV in deep standby without needing its ARP entry.
         let broadcast = settings.device.host.split(separator: ".").dropLast().joined(separator: ".") + ".255"
         // Network.framework cannot set SO_BROADCAST, so NWConnection gets EACCES sending to a broadcast address.
+        guard var address = ipv4(broadcast, port: 9) else { throw Refusal("Wake-on-LAN not sent: \(broadcast) is not an IPv4 address") }
         let socket = Darwin.socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+        guard socket >= 0 else { throw Refusal("Wake-on-LAN not sent: \(String(cString: strerror(errno)))") }
         defer { close(socket) }
         var on: Int32 = 1
-        setsockopt(socket, SOL_SOCKET, SO_BROADCAST, &on, socklen_t(MemoryLayout<Int32>.size))
-        var address = sockaddr_in()
-        address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
-        address.sin_family = sa_family_t(AF_INET)
-        address.sin_port = UInt16(9).bigEndian
-        inet_pton(AF_INET, broadcast, &address.sin_addr)
+        guard setsockopt(socket, SOL_SOCKET, SO_BROADCAST, &on, socklen_t(MemoryLayout<Int32>.size)) == 0 else {
+            throw Refusal("Wake-on-LAN not sent: \(String(cString: strerror(errno)))")
+        }
         let sent = packet.withUnsafeBytes { bytes in
             withUnsafePointer(to: &address) {
                 $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
@@ -224,6 +265,24 @@ actor ADB {
                 }
             }
         }
-        guard sent == packet.count else { throw Refusal("Wake-on-LAN packet not sent: \(String(cString: strerror(errno)))") }
+        guard sent == packet.count else { throw Refusal("Wake-on-LAN not sent: \(String(cString: strerror(errno)))") }
+    }
+}
+
+func ipv4(_ text: String, port: UInt16) -> sockaddr_in? {
+    var address = sockaddr_in()
+    address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+    address.sin_family = sa_family_t(AF_INET)
+    address.sin_port = port.bigEndian
+    return inet_pton(AF_INET, text, &address.sin_addr) == 1 ? address : nil
+}
+
+func listening(onLocalPort port: UInt16) -> Bool {
+    guard var address = ipv4("127.0.0.1", port: port) else { return false }
+    let socket = Darwin.socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+    guard socket >= 0 else { return false }
+    defer { close(socket) }
+    return withUnsafePointer(to: &address) {
+        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { connect(socket, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) == 0 }
     }
 }

@@ -46,11 +46,15 @@ struct HTTPRequest: Sendable {
     private let page: Data
     private let listener: NWListener
     private weak var remote: Remote?
+    private let onStop: @MainActor (String) -> Void
     private var starting: CheckedContinuation<Void, Error>?
+    private var stopped = false
+    private var connections: [ObjectIdentifier: NWConnection] = [:]
     private var receiving: Set<ObjectIdentifier> = []
+    private var responding: Set<ObjectIdentifier> = []
 
-    init(remote: Remote, port: UInt16 = 8765) async throws {
-        guard let address = lanAddress(near: remote.settings.device.host) else { throw Refusal("No Wi-Fi or Ethernet address found") }
+    init(remote: Remote, port: UInt16 = 8765, onStop: @escaping @MainActor (String) -> Void) async throws {
+        guard let address = lanAddress(near: remote.settings.device.host) else { throw Refusal("Not on the TV's network") }
         guard let pageURL = Bundle.module.url(forResource: "phone", withExtension: "html") else { throw Refusal("phone.html is missing") }
         var bytes = [UInt8](repeating: 0, count: 32)
         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { throw Refusal("No random bytes") }
@@ -59,6 +63,7 @@ struct HTTPRequest: Sendable {
         url = URL(string: "http://\(host)/#\(token)")!
         page = try Data(contentsOf: pageURL)
         self.remote = remote
+        self.onStop = onStop
         let parameters = NWParameters.tcp
         parameters.requiredLocalEndpoint = .hostPort(host: NWEndpoint.Host(address), port: NWEndpoint.Port(rawValue: port)!)
         listener = try NWListener(using: parameters)
@@ -70,15 +75,24 @@ struct HTTPRequest: Sendable {
         }
     }
 
-    func stop() { listener.cancel() }
+    func stop() {
+        stopped = true
+        listener.cancel()
+        connections.values.forEach { $0.cancel() }
+        (connections, receiving, responding) = ([:], [], [])
+    }
 
     private func changed(_ state: NWListener.State, port: UInt16) {
         switch state {
         case .ready:
             starting?.resume()
         case .failed(let error), .waiting(let error):
+            guard let starting else {
+                if !stopped { stop(); onStop(error.localizedDescription) }
+                return
+            }
             listener.cancel()
-            starting?.resume(throwing: Refusal("Port \(port) is unavailable: \(error.localizedDescription)"))
+            starting.resume(throwing: Refusal("Port \(port) is unavailable: \(error.localizedDescription)"))
         default:
             return
         }
@@ -86,31 +100,56 @@ struct HTTPRequest: Sendable {
     }
 
     private func accept(_ connection: NWConnection) {
+        guard !stopped else { return connection.cancel() }
         let id = ObjectIdentifier(connection)
+        connections[id] = connection
         receiving.insert(id)
         connection.start(queue: .main)
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            MainActor.assumeIsolated { if self?.receiving.remove(id) != nil { connection.cancel() } }
+            MainActor.assumeIsolated { if self?.receiving.remove(id) != nil { self?.close(connection) } }
         }
         receive(connection, Data())
+    }
+
+    private func close(_ connection: NWConnection) {
+        let id = ObjectIdentifier(connection)
+        connections[id] = nil
+        receiving.remove(id)
+        responding.remove(id)
+        connection.cancel()
     }
 
     private func receive(_ connection: NWConnection, _ buffer: Data) {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) { [weak self] data, _, done, error in
             MainActor.assumeIsolated {
                 guard let self else { return connection.cancel() }
+                let id = ObjectIdentifier(connection)
                 let buffer = buffer + (data ?? Data())
                 switch HTTPRequest.parse(buffer) {
-                case .incomplete where done || error != nil: connection.cancel()
+                case .incomplete where done || error != nil: self.close(connection)
                 case .incomplete: self.receive(connection, buffer)
-                case .invalid(let status): self.send(connection, Response(status: status))
-                case .complete(let request): Task { self.send(connection, await self.respond(request)) }
+                case .invalid(let status):
+                    guard self.receiving.remove(id) != nil else { return }
+                    self.send(connection, Response(status: status))
+                case .complete(let request):
+                    guard self.receiving.remove(id) != nil else { return }
+                    self.responding.insert(id)
+                    // The slowest plan is a wake with a 20 s connect plus probes.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 45) { [weak self] in
+                        MainActor.assumeIsolated { if self?.responding.contains(id) == true { self?.close(connection) } }
+                    }
+                    Task {
+                        let response = await self.respond(request)
+                        guard self.responding.remove(id) != nil else { return }
+                        self.send(connection, response)
+                    }
                 }
             }
         }
     }
 
     private func respond(_ request: HTTPRequest) async -> Response {
+        guard !stopped else { return Response(status: 401) }
         guard request.headers["host"] == host else { return Response(status: 421) }
         if let origin = request.headers["origin"], origin != "http://\(host)" { return Response(status: 403) }
         if request.path == "/" {
@@ -142,14 +181,15 @@ struct HTTPRequest: Sendable {
     }
 
     private func send(_ connection: NWConnection, _ response: Response) {
-        receiving.remove(ObjectIdentifier(connection))
         let reasons = [200: "OK", 400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found",
                        405: "Method Not Allowed", 413: "Content Too Large", 421: "Misdirected Request", 431: "Header Too Large"]
         var head = "HTTP/1.1 \(response.status) \(reasons[response.status] ?? "")\r\nContent-Type: \(response.type)\r\n"
         head += "Content-Length: \(response.body.count)\r\nConnection: close\r\nCache-Control: no-store\r\n"
         head += "Referrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n"
         head += "Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'\r\n\r\n"
-        connection.send(content: Data(head.utf8) + response.body, completion: .contentProcessed { _ in connection.cancel() })
+        connection.send(content: Data(head.utf8) + response.body, completion: .contentProcessed { [weak self] _ in
+            MainActor.assumeIsolated { if let self { self.close(connection) } else { connection.cancel() } }
+        })
     }
 }
 
@@ -163,5 +203,5 @@ func lanAddress(near tv: String) -> String? {
         return address.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { String(cString: inet_ntoa($0.pointee.sin_addr)) }
     }
     let subnet = tv.split(separator: ".").dropLast().joined(separator: ".") + "."
-    return addresses.first { $0.hasPrefix(subnet) } ?? addresses.first
+    return addresses.first { $0.hasPrefix(subnet) }
 }

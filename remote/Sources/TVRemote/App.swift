@@ -50,5 +50,9 @@ extension Connection {
     await remote.setPhone(true)
     guard let url = remote.phone?.url else { return print("phone: \(remote.operation)") }
     print("phone: \(url.absoluteString)")
+    signal(SIGUSR1, SIG_IGN)
+    let stop = DispatchSource.makeSignalSource(signal: SIGUSR1, queue: .main)
+    stop.setEventHandler { Task { @MainActor in await remote.setPhone(false); print("phone: stopped") } }
+    stop.resume()
     while true { try? await Task.sleep(for: .seconds(3600)) }
 }

@@ -2,8 +2,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
-scratch="${TVREMOTE_BUILD:-/Volumes/AgentWork/tv-remote-build}"
-[ -d "$(dirname "$scratch")" ] || scratch=.build
+scratch="${TVREMOTE_BUILD:-.build}"
 app="$HOME/Applications/TV Remote.app"
 
 if pgrep -f "$app/Contents/MacOS/TVRemote" >/dev/null; then
@@ -21,7 +20,7 @@ cp "$bin/TVRemote" "$app/Contents/MacOS/TVRemote"
 cp -R "$bin/TVRemote_TVRemote.bundle" "$app/Contents/Resources/"
 
 identity="$(security find-identity -v -p codesigning | awk -F'"' '/Apple Development/ { print $2; exit }')"
-codesign --force --deep --sign "${identity:--}" "$app"
+codesign --force --sign "${identity:--}" "$app"
 codesign --verify --strict "$app"
 echo "Signed with ${identity:-an ad hoc signature}"
 

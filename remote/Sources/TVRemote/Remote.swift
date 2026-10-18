@@ -21,7 +21,10 @@ import Observation
         do {
             let request = try CommandRequest(id: id, urlText: url, settings: settings)
             operation = .running(id)
-            (receipt, snapshot) = await adb.perform(request)
+            let executor = adb
+            let result = await executor.perform(request)
+            receipt = result.0
+            if executor === adb { snapshot = result.1 }
         } catch {
             receipt = Receipt(.failed, error.reason)
         }
@@ -37,12 +40,18 @@ import Observation
         phone?.stop()
         phone = nil
         guard on else { return }
-        do { phone = try await Phone(remote: self) } catch {
+        do {
+            phone = try await Phone(remote: self) { [weak self] reason in
+                self?.phone = nil
+                self?.operation = .finished(Receipt(.failed, "Phone remote stopped: \(reason)"))
+            }
+        } catch {
             operation = .finished(Receipt(.failed, (error as? Refusal)?.reason ?? error.localizedDescription))
         }
     }
 
     func save(_ new: Settings) throws {
+        if case .running = operation { throw Refusal("Wait for the current command to finish") }
         try FileManager.default.createDirectory(at: settingsURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try JSONEncoder().encode(new).write(to: settingsURL, options: .atomic)
         settings = new
