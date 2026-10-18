@@ -68,50 +68,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp">
 
-            <LinearLayout
-                android:id="@+id/quote"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="11dp"
-                android:background="@drawable/info_panel_bg"
-                android:orientation="vertical">
-
-                <com.gathin.tvhome.TightTextView
-                    android:id="@+id/quoteText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:maxWidth="420dp"
-                    android:maxLines="3"
-                    android:ellipsize="end"
-                    android:breakStrategy="balanced"
-                    android:textColor="#FAFFFFFF"
-                    android:textSize="15sp"
-                    android:lineSpacingMultiplier="1.2"
-                    android:fontFamily="@font/outfit"
-                    android:fontVariationSettings="'wght' 400"
-                    android:shadowColor="#99000000"
-                    android:shadowRadius="3"
-                    android:shadowDy="1" />
-
-                <TextView
-                    android:id="@+id/quoteAuthor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:singleLine="true"
-                    android:textColor="#D9FFFFFF"
-                    android:textSize="10sp"
-                    android:fontFamily="@font/outfit"
-                    android:fontVariationSettings="'wght' 500"
-                    android:letterSpacing="0.2"
-                    android:textAllCaps="true"
-                    android:shadowColor="#99000000"
-                    android:shadowRadius="3"
-                    android:shadowDy="1" />
-            </LinearLayout>
+            <include layout="@layout/quote_panel" />
         </FrameLayout>
     </LinearLayout>
 
