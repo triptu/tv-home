@@ -20,8 +20,6 @@
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
-	<key>LSUIElement</key>
-	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>TV Remote controls your TV over the local network and serves the optional phone remote.</string>
 </dict>
