@@ -3,7 +3,7 @@ import Testing
 @testable import TVRemote
 
 private let awake = Snapshot(.awake(foreground: "com.gathin.tvhome"))
-private let paired = Settings(stream: StreamTarget(hostUUID: "6F0B7C2E-1D3A-4C5B-9E8F-0A1B2C3D4E5F", appID: "881448767"))
+private let paired = Settings(stream: StreamTarget(hostUUID: "6F0B7C2E-1D3A-4C5B-9E8F-0A1B2C3D4E5F", app: "Desktop"))
 
 private func steps(_ id: String, _ snapshot: Snapshot, url: String? = nil, settings: Settings = Settings()) throws -> [Step] {
     try plan(CommandRequest(id: id, urlText: url, settings: settings), snapshot, settings: settings)
@@ -24,7 +24,8 @@ private func steps(_ id: String, _ snapshot: Snapshot, url: String? = nil, setti
     #expect(available("sleep", awake.connection) && !available("sleep", .standby))
     #expect(available("volume_up", awake.connection) && !available("volume_up", .standby))
     #expect(available("netflix", .standby) && !available("netflix", .unreachable("x")))
-    #expect(!available("stream", awake.connection))
+    let unpaired = Settings(stream: StreamTarget(app: ""))
+    #expect(Command.named("stream")!.unavailable(in: awake.connection, settings: unpaired) == Command.pairHint)
     #expect(Command.named("stream")!.unavailable(in: awake.connection, settings: paired) == nil)
     #expect(Command.named("stream")!.unavailable(in: .standby, settings: paired) == nil)
 }
@@ -54,7 +55,7 @@ private func steps(_ id: String, _ snapshot: Snapshot, url: String? = nil, setti
     #expect(try steps("stream", awake, settings: paired) == [
         .startSunshine,
         .shell("input keyevent KEYCODE_WAKEUP"),
-        .shell("am start -n com.limelight/.ShortcutTrampoline --es UUID '6F0B7C2E-1D3A-4C5B-9E8F-0A1B2C3D4E5F' --es AppId '881448767'"),
+        .shell("am start -n com.limelight/.ShortcutTrampoline --es UUID '6F0B7C2E-1D3A-4C5B-9E8F-0A1B2C3D4E5F' --es AppName 'Desktop'"),
         .probe(until: .foreground("com.limelight")),
     ])
     #expect(throws: Refusal.self) { try steps("volume_up", Snapshot(.standby)) }
@@ -83,9 +84,9 @@ private func steps(_ id: String, _ snapshot: Snapshot, url: String? = nil, setti
 }
 
 @Test func settingsWithMissingKeysKeepDefaults() throws {
-    let decoded = try JSONDecoder().decode(Settings.self, from: Data(#"{"device":{"name":"Den"},"stream":{"appID":"7"}}"#.utf8))
+    let decoded = try JSONDecoder().decode(Settings.self, from: Data(#"{"device":{"name":"Den"},"stream":{"app":"Steam Big Picture"}}"#.utf8))
     #expect(decoded.device == Device(name: "Den"))
-    #expect(decoded.stream == StreamTarget(appID: "7"))
+    #expect(decoded.stream == StreamTarget(app: "Steam Big Picture"))
     #expect(decoded.adbPath == Settings().adbPath)
 }
 
@@ -122,4 +123,11 @@ private func parsed(_ chunks: [String]) -> Parsed {
     for (chunks, expected) in cases {
         #expect(parsed(chunks) == expected, "\(chunks)")
     }
+}
+
+@Test func sunshineUUIDComesFromTheStateFile() throws {
+    let file = FileManager.default.temporaryDirectory.appending(path: "sunshine_state_\(UUID().uuidString).json")
+    try Data(#"{"root":{"uniqueid":"6AFFAAF6-3BA8-1C09-2211-F50ADDD5385E","named_devices":[]}}"#.utf8).write(to: file)
+    #expect(StreamTarget.sunshineUUID(from: file) == UUID(uuidString: "6AFFAAF6-3BA8-1C09-2211-F50ADDD5385E"))
+    #expect(StreamTarget.sunshineUUID(from: file.appending(path: "missing")) == nil)
 }

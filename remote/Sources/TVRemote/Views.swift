@@ -139,8 +139,8 @@ struct SettingsView: View {
                 TextField("adb path", text: $draft.adbPath)
             }
             Section("Mac on TV") {
-                TextField("Moonlight host UUID", text: $draft.stream.hostUUID)
-                TextField("Sunshine app id", text: $draft.stream.appID)
+                TextField("Sunshine app", text: $draft.stream.app, prompt: Text("Desktop"))
+                TextField("Host UUID", text: $draft.stream.hostUUID, prompt: Text("Read from Sunshine on this Mac"))
             }
             if let error { Text(error).foregroundStyle(.red) }
             Button("Save") {

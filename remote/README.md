@@ -18,14 +18,12 @@ Run the tests with `swift test --package-path remote`.
 
 ## Mac on TV
 
-Mac on TV opens a paired Moonlight host's app straight from the TV, so you need to pair once.
+Mac on TV streams this Mac's screen to the TV through Sunshine and Moonlight. Pair once:
 
-1. Open Sunshine on the Mac and grant screen recording.
-2. In Moonlight on the TV, add the Mac and enter the PIN in Sunshine's web page.
-3. Start the Desktop app once from Moonlight to confirm video arrives.
-4. Copy the host UUID and the Desktop app id from Sunshine into TV Remote's Settings.
+1. Open Sunshine on the Mac, set its web login, and allow screen recording when macOS asks.
+2. Open Moonlight on the TV, pick this Mac, and enter the PIN it shows at https://localhost:47990/pin.
 
-The button stays disabled until both values are set.
+The button reads the host id from Sunshine's state file on this Mac and starts the Sunshine app named in Settings, Desktop by default. It stays disabled until Sunshine has been set up here.
 
 ## Phone remote
 

@@ -10,10 +10,21 @@ struct Device: Codable, Sendable, Equatable {
 
 struct StreamTarget: Codable, Sendable, Equatable {
     var hostUUID = ""
-    var appID = ""
-    var parsed: (uuid: UUID, appID: String)? {
-        guard let uuid = UUID(uuidString: hostUUID), let app = UInt(appID), app > 0 else { return nil }
-        return (uuid, String(app))
+    var app = "Desktop"
+
+    static let sunshineState = URL.homeDirectory.appending(path: ".config/sunshine/sunshine_state.json")
+
+    var resolved: (uuid: UUID, app: String)? {
+        let name = app.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty, let uuid = UUID(uuidString: hostUUID) ?? Self.sunshineUUID() else { return nil }
+        return (uuid, name)
+    }
+
+    static func sunshineUUID(from file: URL = sunshineState) -> UUID? {
+        guard let data = try? Data(contentsOf: file),
+              let root = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["root"] as? [String: Any],
+              let id = root["uniqueid"] as? String else { return nil }
+        return UUID(uuidString: id)
     }
 }
 
@@ -41,7 +52,7 @@ extension StreamTarget {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.init()
         hostUUID = try container.decodeIfPresent(String.self, forKey: .hostUUID) ?? hostUUID
-        appID = try container.decodeIfPresent(String.self, forKey: .appID) ?? appID
+        app = try container.decodeIfPresent(String.self, forKey: .app) ?? app
     }
 }
 
@@ -138,7 +149,7 @@ struct Command: Sendable, Identifiable {
     let group: Group
     let action: Action
 
-    static let pairHint = "Pair Moonlight, then set host UUID and app id in Settings"
+    static let pairHint = "Open Sunshine on this Mac and pair Moonlight on the TV once"
 
     static let registry: [Command] = [
         Command(id: "reconnect", label: "Reconnect", symbol: "arrow.clockwise", group: .power, action: .reconnect),
@@ -194,7 +205,7 @@ struct Command: Sendable, Identifiable {
     }
 
     func unavailable(in connection: Connection, settings: Settings) -> String? {
-        if action == .stream, settings.stream.parsed == nil { return Self.pairHint }
+        if action == .stream, settings.stream.resolved == nil { return Self.pairHint }
         switch (requirement, connection) {
         case (.any, _), (.awake, .awake), (.awakeOrStandby, .awake), (.awakeOrStandby, .standby),
              (.notAwake, .standby), (.notAwake, .unreachable), (.notAwake, .reachableUnknown):
@@ -211,7 +222,7 @@ struct Command: Sendable, Identifiable {
 enum Argument: Sendable, Equatable {
     case none
     case url(URL)
-    case stream(uuid: UUID, appID: String)
+    case stream(uuid: UUID, app: String)
 }
 
 struct CommandRequest: Sendable {
@@ -226,8 +237,8 @@ struct CommandRequest: Sendable {
             guard let url = urlText.flatMap(webURL) else { throw Refusal("Copy a web link first.") }
             argument = .url(url)
         case .stream:
-            guard let target = settings.stream.parsed else { throw Refusal(Command.pairHint) }
-            argument = .stream(uuid: target.uuid, appID: target.appID)
+            guard let target = settings.stream.resolved else { throw Refusal(Command.pairHint) }
+            argument = .stream(uuid: target.uuid, app: target.app)
         default:
             argument = .none
         }
@@ -288,11 +299,11 @@ func plan(_ request: CommandRequest, _ snapshot: Snapshot, settings: Settings) t
     // WAKEUP is a no-op when awake, but it ends a screensaver, which otherwise covers the launched activity.
     case (.launch(let package, let fallback), _):
         return [.shell(keyevent("WAKEUP")), .launch(package: package, fallback: fallback), .probe(until: .foreground(package))]
-    case (.stream, .stream(let uuid, let appID)):
+    case (.stream, .stream(let uuid, let app)):
         return [
             .startSunshine,
             .shell(keyevent("WAKEUP")),
-            .shell("am start -n com.limelight/.ShortcutTrampoline --es UUID \(quote(uuid.uuidString)) --es AppId \(quote(appID))"),
+            .shell("am start -n com.limelight/.ShortcutTrampoline --es UUID \(quote(uuid.uuidString)) --es AppName \(quote(app))"),
             .probe(until: .foreground("com.limelight")),
         ]
     case (.url, .url(let url)):
