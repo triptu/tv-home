@@ -67,6 +67,19 @@
             </intent-filter>
         </activity>
 
+        <!-- Default screensaver: the home screen's painting and quote with no other UI. `settings put secure
+             screensaver_components com.gathin.tvhome/.ArtDream` over adb. -->
+        <service
+            android:name=".ArtDream"
+            android:label="Art"
+            android:exported="true"
+            android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+
         <!-- Gallery screensaver: `settings put secure screensaver_components
              com.gathin.tvhome/.gallery.ArtDream` over adb. -->
         <service

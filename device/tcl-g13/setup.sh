@@ -10,7 +10,7 @@ for p in $(cat "$DIR/removed.txt"); do $ADB shell pm uninstall -k --user 0 "$p" 
 for p in $(cat "$DIR/disabled.txt"); do $ADB shell pm disable-user --user 0 "$p"; done
 $ADB shell cmd package set-home-activity --user 0 com.gathin.tvhome/.MainActivity
 $ADB shell settings put secure screensaver_enabled 1
-$ADB shell settings put secure screensaver_components com.gathin.tvhome/.gallery.ArtDream
+$ADB shell settings put secure screensaver_components com.gathin.tvhome/.ArtDream
 $ADB shell settings put global no_signal_auto_power_off 0
 # Screensaver after 5 minutes idle; the TV turns off after 4 hours with no input.
 $ADB shell settings put system screen_off_timeout 300000
