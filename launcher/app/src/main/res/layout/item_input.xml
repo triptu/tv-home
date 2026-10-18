@@ -29,7 +29,7 @@
         android:duplicateParentState="true"
         android:textSize="15sp"
         android:fontFamily="@font/outfit"
-        android:fontVariationSettings="'wght' 500"
+        android:fontVariationSettings="'wght' 400"
         android:singleLine="true" />
 
     <View

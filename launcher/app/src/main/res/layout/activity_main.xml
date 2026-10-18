@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Art first: the painting fills the screen; a quiet clock top left, three round buttons top right, and the
+  quote above a small dock at the bottom. The other apps live in a panel that slides up over the art.
+  Spacing is on an 8dp grid: 48dp side margins, 32dp top and bottom.
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
     android:layout_width="match_parent"
@@ -11,230 +16,188 @@
         android:layout_height="match_parent"
         android:importantForAccessibility="noHideDescendants" />
 
-    <!-- Quote for the current picture, between the top bar and the app name; placed and hidden in code. -->
-    <FrameLayout
-        android:id="@+id/quoteHost"
+    <LinearLayout
+        android:id="@+id/clockBlock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp">
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="32dp"
+        android:orientation="vertical">
+
+        <TextClock
+            android:id="@+id/clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="h:mm"
+            android:format24Hour="HH:mm"
+            android:textColor="#F2FFFFFF"
+            android:textSize="36sp"
+            android:fontFamily="@font/outfit"
+            android:fontVariationSettings="'wght' 250"
+            android:letterSpacing="-0.02"
+            android:includeFontPadding="false"
+            android:shadowColor="#66000000"
+            android:shadowRadius="10" />
+
+        <TextClock
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:layout_marginTop="6dp"
+            android:format12Hour="@string/date_format"
+            android:format24Hour="@string/date_format"
+            android:textColor="#B3FFFFFF"
+            android:textSize="12sp"
+            android:fontFamily="@font/outfit"
+            android:fontVariationSettings="'wght' 400"
+            android:letterSpacing="0.16"
+            android:textAllCaps="true"
+            android:shadowColor="#80000000"
+            android:shadowRadius="8" />
+    </LinearLayout>
+
+    <!-- The 4dp padding leaves room for the focus scale; the margins make up for it. -->
+    <LinearLayout
+        android:id="@+id/topButtons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginEnd="44dp"
+        android:layout_marginTop="28dp"
+        android:padding="4dp"
+        android:clipToPadding="false"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/btnGallery"
+            style="@style/TopButton"
+            android:layout_marginStart="0dp"
+            android:contentDescription="@string/gallery"
+            android:src="@drawable/ic_gallery" />
+
+        <ImageView
+            android:id="@+id/btnInputs"
+            style="@style/TopButton"
+            android:contentDescription="@string/inputs"
+            android:src="@drawable/ic_input" />
+
+        <ImageView
+            android:id="@+id/btnSettings"
+            style="@style/TopButton"
+            android:contentDescription="@string/settings"
+            android:src="@drawable/ic_settings" />
+    </LinearLayout>
+
+    <!-- Quote and dock, centred at the bottom; the quote lines up with the dock strip's left edge. -->
+    <LinearLayout
+        android:id="@+id/bottomBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="32dp"
+        android:orientation="vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <LinearLayout
             android:id="@+id/quote"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="20dp"
-            android:paddingEnd="22dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="14dp"
-            android:background="@drawable/quote_bg"
+            android:layout_marginStart="12dp"
+            android:layout_marginBottom="24dp"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/quoteText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxWidth="540dp"
-                android:maxLines="3"
+                android:maxWidth="520dp"
+                android:maxLines="2"
                 android:ellipsize="end"
                 android:breakStrategy="balanced"
-                android:textColor="#D9FFFFFF"
-                android:textSize="20sp"
-                android:lineSpacingMultiplier="1.15"
+                android:textColor="#E6FFFFFF"
+                android:textSize="16sp"
+                android:lineSpacingMultiplier="1.2"
                 android:fontFamily="@font/outfit"
                 android:fontVariationSettings="'wght' 300"
-                android:shadowColor="#99000000"
+                android:shadowColor="#CC000000"
                 android:shadowRadius="12" />
 
             <TextView
                 android:id="@+id/quoteAuthor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:singleLine="true"
-                android:textColor="#8CFFFFFF"
-                android:textSize="12sp"
+                android:textColor="#B3FFFFFF"
+                android:textSize="10sp"
                 android:fontFamily="@font/outfit"
                 android:fontVariationSettings="'wght' 500"
-                android:letterSpacing="0.22"
+                android:letterSpacing="0.2"
                 android:textAllCaps="true"
-                android:shadowColor="#66000000"
-                android:shadowRadius="8" />
+                android:shadowColor="#CC000000"
+                android:shadowRadius="10" />
         </LinearLayout>
-    </FrameLayout>
 
-    <!-- Top shelf: the focused dock app's name, positioned above the dock in code. -->
-    <TextView
-        android:id="@+id/heroName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="68dp"
-        android:alpha="0"
-        android:textColor="#FFFFFFFF"
-        android:textSize="48sp"
-        android:fontFamily="@font/outfit"
-        android:fontVariationSettings="'wght' 300"
-        android:letterSpacing="-0.02"
-        android:includeFontPadding="false"
-        android:singleLine="true" />
+        <!-- 4dp padding plus each tile's 8dp makes the strip's 12dp padding. -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/dock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="4dp"
+            android:background="@drawable/dock_bg"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:scrollbars="none"
+            android:descendantFocusability="afterDescendants" />
+    </LinearLayout>
 
-    <LinearLayout
+    <!-- Every other app, over the dimmed art. Hidden until All apps or Down from the dock. -->
+    <FrameLayout
+        android:id="@+id/gridPanel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:paddingStart="56dp"
-        android:paddingEnd="56dp"
-        android:paddingTop="26dp">
+        android:background="#E00A0A0C"
+        android:visibility="gone">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <LinearLayout
+            android:id="@+id/gridContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="32dp"
+            android:orientation="vertical"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
-            <LinearLayout
-                android:id="@+id/leftBlock"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:orientation="vertical">
+                android:layout_marginStart="12dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/all_apps"
+                android:textColor="#B3FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/outfit"
+                android:fontVariationSettings="'wght' 400"
+                android:letterSpacing="0.16"
+                android:textAllCaps="true" />
 
-                <TextView
-                    android:id="@+id/greeting"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:textColor="#8CFFFFFF"
-                    android:textSize="12sp"
-                    android:fontFamily="@font/outfit"
-                    android:fontVariationSettings="'wght' 500"
-                    android:letterSpacing="0.22"
-                    android:textAllCaps="true" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:baselineAligned="true">
-
-                    <TextClock
-                        android:id="@+id/clock"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:format12Hour="h:mm"
-                        android:format24Hour="HH:mm"
-                        android:textColor="#FFFFFFFF"
-                        android:textSize="52sp"
-                        android:fontFamily="@font/outfit"
-                        android:fontVariationSettings="'wght' 300"
-                        android:letterSpacing="-0.04"
-                        android:includeFontPadding="false" />
-
-                    <TextClock
-                        android:id="@+id/ampm"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_gravity="bottom"
-                        android:layout_marginBottom="8dp"
-                        android:format12Hour="a"
-                        android:format24Hour=""
-                        android:textColor="#B3FFFFFF"
-                        android:textSize="15sp"
-                        android:fontFamily="@font/outfit"
-                        android:fontVariationSettings="'wght' 500"
-                        android:letterSpacing="0.08"
-                        android:textAllCaps="true" />
-
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="26dp"
-                        android:layout_gravity="bottom"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginEnd="16dp"
-                        android:layout_marginBottom="8dp"
-                        android:background="#33FFFFFF" />
-
-                    <TextClock
-                        android:id="@+id/date"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="bottom"
-                        android:layout_marginBottom="9dp"
-                        android:format12Hour="@string/date_format"
-                        android:format24Hour="@string/date_format"
-                        android:textColor="#A6FFFFFF"
-                        android:textSize="14sp"
-                        android:fontFamily="@font/outfit"
-                        android:fontVariationSettings="'wght' 400"
-                        android:letterSpacing="0.14"
-                        android:textAllCaps="true" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/topButtons"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignBottom="@id/leftBlock"
-                android:layout_marginBottom="6dp"
-                android:orientation="horizontal">
-
-                <!-- Icon only, so five pills fit beside the clock on a 960dp-wide screen. -->
-                <TextView
-                    android:id="@+id/btnGallery"
-                    style="@style/TopButton"
-                    android:layout_width="42dp"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:contentDescription="@string/gallery"
-                    android:drawableStart="@drawable/ic_gallery"
-                    android:nextFocusDown="@+id/grid" />
-
-                <TextView
-                    android:id="@+id/btnInputs"
-                    style="@style/TopButton"
-                    android:text="@string/inputs"
-                    android:drawableStart="@drawable/ic_input"
-                    android:nextFocusDown="@+id/grid" />
-
-                <TextView
-                    android:id="@+id/btnWifi"
-                    style="@style/TopButton"
-                    android:maxWidth="150dp"
-                    android:singleLine="true"
-                    android:ellipsize="end"
-                    android:text="@string/wifi"
-                    android:drawableStart="@drawable/ic_wifi"
-                    android:nextFocusDown="@+id/grid" />
-
-                <TextView
-                    android:id="@+id/btnSettings"
-                    style="@style/TopButton"
-                    android:text="@string/settings"
-                    android:drawableStart="@drawable/ic_settings"
-                    android:nextFocusDown="@+id/grid" />
-            </LinearLayout>
-        </RelativeLayout>
-
-        <!-- The wrapper clips at the grid's edge; the grid itself must not clip so scaled tiles can overflow their cells. -->
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_marginTop="10dp">
-
+            <!-- Six 120dp columns: 104dp cards with 16dp between them. -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/grid"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingTop="10dp"
-                android:paddingBottom="40dp"
-                android:clipToPadding="false"
+                android:layout_width="728dp"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
                 android:clipChildren="false"
+                android:clipToPadding="false"
                 android:overScrollMode="never"
                 android:scrollbars="none"
                 android:descendantFocusability="afterDescendants" />
-        </FrameLayout>
-    </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
 
     <!-- The single floating glass highlight that springs between tiles. -->
     <com.gathin.tvhome.GlassView

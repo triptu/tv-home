@@ -5,7 +5,7 @@
 -->
 <resources>
 
-    <!-- Apps pinned to the dock row at the bottom, in this order. Missing apps are skipped. -->
+    <!-- Apps pinned to the dock at the bottom, in this order. Missing apps are skipped; five fit best. -->
     <string-array name="dock_apps">
         <item>com.google.android.youtube.tv</item>
         <item>com.netflix.ninja</item>
@@ -23,6 +23,6 @@
     <!-- The TV's Live TV / tuner app, offered at the end of the Inputs menu. Leave empty to omit. -->
     <string name="live_tv_package" translatable="false">com.mediatek.wwtv.tvcenter</string>
 
-    <!-- Tiles per row in the grid; the dock always has this many slots. -->
-    <integer name="columns">5</integer>
+    <!-- Tiles per row in the All apps grid. The dock shows the dock_apps above plus an All apps tile. -->
+    <integer name="columns">6</integer>
 </resources>

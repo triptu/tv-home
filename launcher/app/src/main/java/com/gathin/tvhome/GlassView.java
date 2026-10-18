@@ -11,10 +11,13 @@ import android.util.AttributeSet;
 import android.view.View;
 
 /**
- * A translucent glass slab: soft sheen fill, bright top specular, crisp rim and a faint outer glow.
+ * A glass highlight: a faint sheen, a top specular, a crisp rim and a soft outer glow.
  * One instance floats over the grid and is moved with spring animations between tiles.
  */
 public class GlassView extends View {
+
+    /** Margin around the slab for the glow; callers size the view this much larger on each side. */
+    static final float GLOW_DP = 6f;
 
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint specular = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -28,7 +31,7 @@ public class GlassView extends View {
     public GlassView(Context context, AttributeSet attrs) {
         super(context, attrs);
         density = getResources().getDisplayMetrics().density;
-        radius = 20f * density;
+        radius = 10f * density;
         rim.setStyle(Paint.Style.STROKE);
         rim.setStrokeWidth(1.5f * density);
         rim.setColor(0xCCFFFFFF);
@@ -43,13 +46,13 @@ public class GlassView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        fill.setShader(new LinearGradient(0, 0, 0, h, 0x3DFFFFFF, 0x12FFFFFF, Shader.TileMode.CLAMP));
-        specular.setShader(new LinearGradient(0, 0, 0, h * 0.45f, 0x66FFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP));
+        fill.setShader(new LinearGradient(0, 0, 0, h, 0x1FFFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP));
+        specular.setShader(new LinearGradient(0, 0, 0, h * 0.45f, 0x4DFFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP));
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        float inset = 6f * density;   // room for the glow
+        float inset = GLOW_DP * density;
         rect.set(inset, inset, getWidth() - inset, getHeight() - inset);
 
         // Outer glow: three widening, fading strokes.
