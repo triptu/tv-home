@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Art first: the painting fills the screen; a quiet clock top left, two round buttons top right, and the
-  quote above a small dock at the bottom. The other apps live in a panel that slides up over the art.
-  Spacing is on an 8dp grid: 48dp side margins, 32dp top and bottom.
+  Art first: the painting fills the screen; the clock, date and quote on a soft panel top left, two round
+  buttons top right, and a small dock at the bottom. The other apps live in a panel that slides up over
+  the art. 48dp side margins.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
@@ -16,11 +16,15 @@
         android:layout_height="match_parent"
         android:importantForAccessibility="noHideDescendants" />
 
+    <!--
+      Clock and date, then the quote for the current picture on a soft panel. The column starts 34dp in so
+      the clock and the quote text both line up at 48dp, inside the panel's 14dp padding.
+    -->
     <LinearLayout
-        android:id="@+id/clockBlock"
+        android:id="@+id/topLeft"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="48dp"
+        android:layout_marginStart="34dp"
         android:layout_marginTop="32dp"
         android:orientation="vertical">
 
@@ -30,20 +34,21 @@
             android:layout_height="wrap_content"
             android:format12Hour="h:mm"
             android:format24Hour="HH:mm"
+            android:layout_marginStart="14dp"
             android:textColor="#F2FFFFFF"
             android:textSize="36sp"
             android:fontFamily="@font/outfit"
             android:fontVariationSettings="'wght' 250"
             android:letterSpacing="-0.02"
             android:includeFontPadding="false"
-            android:shadowColor="#66000000"
-            android:shadowRadius="10" />
+            android:shadowColor="#80000000"
+            android:shadowRadius="8" />
 
         <TextClock
             android:id="@+id/date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="2dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="6dp"
             android:format12Hour="@string/date_format"
             android:format24Hour="@string/date_format"
@@ -55,6 +60,50 @@
             android:textAllCaps="true"
             android:shadowColor="#80000000"
             android:shadowRadius="8" />
+
+        <LinearLayout
+            android:id="@+id/quote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="11dp"
+            android:background="@drawable/info_panel_bg"
+            android:orientation="vertical">
+
+            <com.gathin.tvhome.TightTextView
+                android:id="@+id/quoteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="420dp"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:breakStrategy="balanced"
+                android:textColor="#E6FFFFFF"
+                android:textSize="15sp"
+                android:lineSpacingMultiplier="1.2"
+                android:fontFamily="@font/outfit"
+                android:fontVariationSettings="'wght' 300"
+                android:shadowColor="#66000000"
+                android:shadowRadius="6" />
+
+            <TextView
+                android:id="@+id/quoteAuthor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:singleLine="true"
+                android:textColor="#B3FFFFFF"
+                android:textSize="10sp"
+                android:fontFamily="@font/outfit"
+                android:fontVariationSettings="'wght' 500"
+                android:letterSpacing="0.2"
+                android:textAllCaps="true"
+                android:shadowColor="#66000000"
+                android:shadowRadius="6" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- The 4dp padding leaves room for the focus scale; the margins make up for it. -->
@@ -84,63 +133,24 @@
             android:src="@drawable/ic_settings" />
     </LinearLayout>
 
-    <!-- Quote and dock, centred at the bottom; the quote lines up with the dock strip's left edge. -->
+    <!-- The dock, centred at the bottom. -->
     <LinearLayout
         android:id="@+id/bottomBlock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="22dp"
         android:orientation="vertical"
         android:clipChildren="false"
         android:clipToPadding="false">
 
-        <LinearLayout
-            android:id="@+id/quote"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginBottom="24dp"
-            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/quoteText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:maxWidth="520dp"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:breakStrategy="balanced"
-                android:textColor="#E6FFFFFF"
-                android:textSize="16sp"
-                android:lineSpacingMultiplier="1.2"
-                android:fontFamily="@font/outfit"
-                android:fontVariationSettings="'wght' 300"
-                android:shadowColor="#CC000000"
-                android:shadowRadius="12" />
-
-            <TextView
-                android:id="@+id/quoteAuthor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:singleLine="true"
-                android:textColor="#B3FFFFFF"
-                android:textSize="10sp"
-                android:fontFamily="@font/outfit"
-                android:fontVariationSettings="'wght' 500"
-                android:letterSpacing="0.2"
-                android:textAllCaps="true"
-                android:shadowColor="#CC000000"
-                android:shadowRadius="10" />
-        </LinearLayout>
-
-        <!-- 4dp padding plus each tile's 8dp makes the strip's 12dp padding. -->
+        <!-- 3dp padding plus each tile's 7dp makes the strip's 10dp padding. -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/dock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="4dp"
+            android:padding="3dp"
             android:background="@drawable/dock_bg"
             android:clipChildren="false"
             android:clipToPadding="false"
@@ -162,7 +172,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="22dp"
             android:orientation="vertical"
             android:clipChildren="false"
             android:clipToPadding="false">
@@ -170,7 +180,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="10dp"
                 android:layout_marginBottom="8dp"
                 android:text="@string/all_apps"
                 android:textColor="#B3FFFFFF"
@@ -180,12 +190,12 @@
                 android:letterSpacing="0.16"
                 android:textAllCaps="true" />
 
-            <!-- Six 120dp columns: 104dp cards with 16dp between them. -->
+            <!-- Six 102dp columns: 88dp cards with 14dp between them, like the dock. -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/grid"
-                android:layout_width="728dp"
+                android:layout_width="618dp"
                 android:layout_height="wrap_content"
-                android:padding="4dp"
+                android:padding="3dp"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:overScrollMode="never"

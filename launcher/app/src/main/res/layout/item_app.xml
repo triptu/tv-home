@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One app tile. The 8dp padding on every side gives 16dp between cards and room for the focus scale. -->
+<!-- One app tile. The 7dp padding on every side gives 14dp between cards and room for the focus scale. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="8dp"
+    android:padding="7dp"
     android:clipChildren="false"
     android:clipToPadding="false">
 
     <FrameLayout
         android:id="@+id/card"
-        android:layout_width="104dp"
-        android:layout_height="58dp"
+        android:layout_width="88dp"
+        android:layout_height="50dp"
         android:layout_gravity="center"
         android:background="@drawable/tile_bg"
         android:focusable="true"
@@ -26,8 +26,8 @@
         <!-- Apps without a banner: icon and a small name; the All apps tile: its glyph alone. -->
         <ImageView
             android:id="@+id/icon"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_gravity="center"
             android:visibility="gone"
             android:contentDescription="@null" />
