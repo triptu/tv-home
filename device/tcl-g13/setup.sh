@@ -12,6 +12,10 @@ $ADB shell cmd package set-home-activity --user 0 com.gathin.tvhome/.MainActivit
 $ADB shell settings put secure screensaver_enabled 1
 $ADB shell settings put secure screensaver_components com.gathin.tvhome/.gallery.ArtDream
 $ADB shell settings put global no_signal_auto_power_off 0
+# Screensaver after 5 minutes idle; the TV turns off after 4 hours with no input.
+$ADB shell settings put system screen_off_timeout 300000
+$ADB shell settings put secure sleep_timeout 14400000
+$ADB shell settings put secure attentive_timeout 14400000
 $ADB shell settings put global window_animation_scale 0
 $ADB shell settings put global transition_animation_scale 0
 $ADB shell settings put global animator_duration_scale 0
