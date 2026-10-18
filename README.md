@@ -76,7 +76,8 @@ A home screen that is yours again:
 - **tvOS-style focus**: the focused card lifts into full colour with a white ring.
 - **Two round buttons**: Art mode (framed paintings on a gallery wall, starting with the one on
   screen) and Settings.
-- **A quiet clock and the date**, set in [Outfit](https://fonts.google.com/specimen/Outfit).
+- **A quiet clock and the date**, set in [Outfit](https://fonts.google.com/specimen/Outfit), and the
+  quote in [Cormorant Garamond](https://fonts.google.com/specimen/Cormorant+Garamond) italic.
 - **A matching Clock screensaver**, optional, that drifts around the screen so nothing burns in.
 
 And a TV that stops working against you: no sponsored rows, no "Discover" nags, no analytics
@@ -252,5 +253,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the format and the testing we ask for
 
 ## Licence
 
-MIT, see [`LICENSE`](LICENSE). The Outfit typeface is under the SIL Open Font License, see
-`launcher/FONT-LICENSE-OFL.txt`.
+MIT, see [`LICENSE`](LICENSE). The Outfit and Cormorant Garamond typefaces are under the SIL Open Font
+License, see `launcher/FONT-LICENSE-OFL.txt` and `launcher/FONT-LICENSE-OFL-CORMORANT.txt`.

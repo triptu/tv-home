@@ -297,7 +297,7 @@ public class WallpaperView extends FrameLayout {
     private void setQuote(int i) {
         String[] q = quotes.get(i % quotes.size());
         quoteText.setText(q[0]);
-        quoteAuthor.setText(q[1]);
+        quoteAuthor.setText("\u2014 " + q[1]);
         quoteAuthor.setVisibility(q[1].isEmpty() ? GONE : VISIBLE);
     }
 
