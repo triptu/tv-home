@@ -76,7 +76,7 @@ struct RemoteView: View {
                         Image(nsImage: code).interpolation(.none).resizable().frame(width: 120, height: 120)
                     }
                     VStack(alignment: .leading) {
-                        Text("Scan with your phone on the same Wi-Fi.").font(.caption)
+                        Text("Scan with your phone on the same Wi-Fi.").font(.caption).fixedSize(horizontal: false, vertical: true)
                         Button("Copy link") {
                             NSPasteboard.general.clearContents()
                             NSPasteboard.general.setString(url.absoluteString, forType: .string)
