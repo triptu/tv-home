@@ -65,6 +65,9 @@ public class WallpaperView extends FrameLayout {
     private static final float[] SCRIM_STOPS = {
             0f, 0.12f, 0.22f, 0.35f,
             0.50f, 0.62f, 0.75f, 0.88f, 1f};
+    /** Extra shade on the left, behind the quote and the app name, for bright skies. */
+    private static final int[] SIDE_SCRIM_COLORS = {0x73000000, 0x40000000, 0x00000000};
+    private static final float[] SIDE_SCRIM_STOPS = {0f, 0.35f, 0.65f};
     private static final ExecutorService DECODER = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
         r.run();
@@ -80,6 +83,7 @@ public class WallpaperView extends FrameLayout {
     private final Bitmap[] bitmaps = new Bitmap[2];
     private final ObjectAnimator[] motion = new ObjectAnimator[2];
     private final Paint scrim = new Paint(Paint.DITHER_FLAG);
+    private final Paint sideScrim = new Paint(Paint.DITHER_FLAG);
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable advance = () -> load(true);
     private final Random random = new Random();
@@ -375,12 +379,14 @@ public class WallpaperView extends FrameLayout {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         scrim.setShader(new LinearGradient(0, 0, 0, h, SCRIM_COLORS, SCRIM_STOPS, Shader.TileMode.CLAMP));
+        sideScrim.setShader(new LinearGradient(0, 0, w, 0, SIDE_SCRIM_COLORS, SIDE_SCRIM_STOPS, Shader.TileMode.CLAMP));
     }
 
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
         canvas.drawRect(0, 0, getWidth(), getHeight(), scrim);
+        canvas.drawRect(0, 0, getWidth(), getHeight(), sideScrim);
     }
 
     @Override

@@ -16,12 +16,17 @@
         android:id="@+id/quoteHost"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="60dp">
+        android:layout_marginStart="40dp">
 
         <LinearLayout
             android:id="@+id/quote"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingStart="20dp"
+            android:paddingEnd="22dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:background="@drawable/quote_bg"
             android:orientation="vertical">
 
             <TextView
@@ -31,13 +36,14 @@
                 android:maxWidth="540dp"
                 android:maxLines="3"
                 android:ellipsize="end"
+                android:breakStrategy="balanced"
                 android:textColor="#D9FFFFFF"
                 android:textSize="20sp"
                 android:lineSpacingMultiplier="1.15"
                 android:fontFamily="@font/outfit"
                 android:fontVariationSettings="'wght' 300"
-                android:shadowColor="#66000000"
-                android:shadowRadius="8" />
+                android:shadowColor="#99000000"
+                android:shadowRadius="12" />
 
             <TextView
                 android:id="@+id/quoteAuthor"

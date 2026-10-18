@@ -336,9 +336,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         float cardTop = g.top + grid.getPaddingTop() + lm.getTopDecorationHeight(dockItem)
                 + dockItem.findViewById(R.id.card).getTop();
         float heroTop = cardTop - 14 * density - 26 * density - heroName.getHeight();
-        float y = heroTop - 32 * density - quoteHost.getHeight();
+        float y = heroTop - 24 * density - quoteHost.getHeight();
         quoteHost.setY(y);
-        quoteFits = y >= bar.bottom + 28 * density;
+        quoteFits = y >= bar.bottom + 16 * density;
         updateQuoteVisibility();
     }
 
