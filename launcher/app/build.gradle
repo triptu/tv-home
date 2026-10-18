@@ -26,6 +26,13 @@ android {
         disable 'ExpiredTargetSdkVersion'
     }
 
+    testOptions {
+        unitTests.all {
+            systemProperty 'inkSheet', project.findProperty('inkSheet') ?: ''
+            testLogging.showStandardStreams = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -34,4 +41,16 @@ android {
 
 dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+// The ink test reads and draws pictures with javax.imageio and java.awt, which android.jar and the trimmed
+// JDK image the Android plugin compiles against leave out, so the unit test compile sees the whole JDK.
+tasks.withType(JavaCompile).configureEach {
+    if (name.contains('UnitTest')) {
+        doFirst {
+            options.bootstrapClasspath = null
+            options.compilerArgumentProviders.removeIf { it.class.simpleName == 'JdkImageInput' }
+        }
+    }
 }
