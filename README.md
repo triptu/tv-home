@@ -16,13 +16,10 @@ It installs on any Android TV or Google TV with Android 8 or later.
 
 <img src="docs/stock-google-tv.jpg" width="200" align="right" alt="The stock Google TV home: a Prime Video ad, Top picks for you and an app row">
 
-The stock Google TV home screen is mostly ads and rows of recommendations. On TVs with little memory it is also
-slow.
+The stock Google TV home screen is mostly ads and recommendations, and it is slow on TVs with little
+memory. This one shows a painting, the time, a quote and the apps you use, and uses less memory.
 
-This home screen shows one painting at a time, a clock and a quote, plus the few apps you
-actually open. It uses less memory than the stock one, and you decide everything on it.
-
-The picture on the right is the stock home on the same TV, dimmed behind a system dialog.
+Right: the stock home screen, dimmed behind a system dialog.
 
 <br clear="right">
 
@@ -81,8 +78,8 @@ Gallery screensaver show all of them.
 ### Debloat
 
 The TV's ads, recommendation rows, demos and telemetry are switched off, and the apps you don't use
-are removed. Nothing is rooted or flashed, and one script puts it all back. The home screen uses less
-than half the memory of Google TV's own launcher.
+are removed. One script puts it all back. The home screen uses less than half the memory of Google
+TV's own launcher.
 
 ### Mac and phone remote
 
@@ -92,32 +89,26 @@ Wi-Fi gets the same buttons from a page the Mac serves. See [`remote/README.md`]
 
 ## Principles
 
-- **The art comes first.** The screen is a painting with a few small things on it, never the other way round.
-- **Only what you use.** Three apps in the dock, everything else one press away in All apps.
-- **Nothing that tracks or recommends.** No network access, no accounts, no content rows. The launcher only lists installed apps and opens them.
-- **Readable on every painting.** The text colour and shade are measured per painting (`InkRule.java`) so text reaches a WCAG contrast of 4.5:1. A unit test checks this on every home picture.
-- **Small and fast on cheap hardware.** Plain Java with RecyclerView, no blur, no video, no background services.
-- **Everything reversible.** Nothing is flashed or rooted. Each change in `device/` has a restore.
+- **Art first.** The painting fills the screen. The clock, quote and dock stay small.
+- **Only the apps you use.** Three in the dock, the rest in All apps.
+- **No tracking or recommendations.** No network access, no accounts. The launcher lists installed apps and opens them.
+- **Readable on every painting.** `InkRule.java` picks the text colour and shade for each painting to reach WCAG 4.5:1 contrast. A unit test checks every home painting.
+- **Light.** Plain Java, no blur, no video, no background services.
+- **Reversible.** No root or flashing. Every change in `device/` has a restore script.
 
 ## Set it up on your TV
 
-Let a coding agent do it. That is how this one was made: an agent connected to the TV over Wi-Fi,
-looked at it through screenshots, asked a few questions and did the rest.
-
-1. On the TV, turn on Developer options (press OK on the build number in Settings → About seven
-   times), then turn on USB debugging and Wireless debugging.
-2. On a computer on the same Wi-Fi, open Claude Code, Codex or another coding agent and give it this:
+1. On the TV, turn on Developer options: in Settings → About, press OK on the build number seven
+   times. Then turn on USB debugging and Wireless debugging.
+2. On a computer on the same Wi-Fi, give a coding agent such as Claude Code or Codex this prompt:
 
    > Set up github.com/triptu/tv-home on my TV. Follow PROMPT.md in that repo.
 
-3. Answer its questions: which apps you use, which go in the dock, what to keep. Accept the
-   "Allow debugging?" prompt on the TV when it appears.
+3. Answer its questions about the apps you use, and accept the "Allow debugging?" prompt on the TV.
 
-After that, ask it for whatever you want: different apps in the dock, your own paintings or photos,
-more quotes, a different screensaver, putting everything back the way it was. The details it needs
-are in [`PROMPT.md`](PROMPT.md).
+To change the dock apps, art, quotes or screensaver later, or to undo the setup, ask the agent.
 
-It works on Android TV and Google TV, not on Samsung, LG or Fire TV.
+Works on Android TV and Google TV, not on Samsung, LG or Fire TV.
 
 ## Credits
 
