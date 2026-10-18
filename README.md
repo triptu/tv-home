@@ -49,7 +49,7 @@ paintings, with just enough shade behind it to stay readable.
 After 8 seconds without a key press, the dock and buttons fade out. The painting, a dim clock and
 the quote stay. The first key press only wakes the screen, so you never open an app by accident.
 
-![Idle home on Webb's Cosmic Cliffs: dim clock and the quote, no dock](docs/idle-cosmic-cliffs.jpg)
+![Idle home on Bierstadt's Among the Sierra Nevada: dim clock and the quote, no dock](docs/idle-sierra-nevada.jpg)
 
 ### Art mode
 
