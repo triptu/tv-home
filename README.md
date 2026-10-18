@@ -96,6 +96,12 @@ Gallery screensaver show all of them.
 On the TCL G13, this home screen uses about 46 to 65 MB of memory (PSS). Google TV's own launcher and the
 services around it used about 146 MB.
 
+### Mac and phone remote
+
+[`remote/`](remote/) is a small Mac menu bar app that drives the TV over adb: volume, media keys,
+navigation, app launches, sleep and wake, and the Mac's desktop in Moonlight. A phone on the same
+Wi-Fi gets the same buttons from a page the Mac serves. See [`remote/README.md`](remote/README.md).
+
 ## Principles
 
 - **The art comes first.** The screen is a painting with a few small things on it, never the other way round.
@@ -149,7 +155,7 @@ If Gradle can't find the SDK, set `ANDROID_HOME` or write `sdk.dir=/path/to/sdk`
 
 ### Install and set up
 
-On a TCL Google TV like mine, one script does all of it:
+On a TCL Google TV like the G13, one script does all of it:
 
 ```bash
 device/tcl-g13/setup.sh 192.168.1.30:5555
