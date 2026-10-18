@@ -2,7 +2,7 @@
 
 A minimal home screen for Android TV and Google TV that shows a painting until you want to watch something.
 
-![The home screen: Hokusai's Red Fuji with the clock, a quote by Dieter Rams and a dock of three apps](docs/home-red-fuji.jpg)
+![The home screen: Hokusai's Great Wave with the clock, a quote by Frida Kahlo and a dock of three apps](docs/home-great-wave.jpg)
 
 It installs on any Android TV or Google TV with Android 8 or later.
 
@@ -38,7 +38,7 @@ Cards are muted until you focus one, then it lifts.
 The quote's ink changes with each painting: dark ink on light paper, white ink on dark or busy
 paintings, with just enough shade behind it to stay readable.
 
-<img src="docs/home-crepe-ginger.jpg" width="49%" alt="Home on a light botanical painting by Shaikh Zain al-Din, with dark ink"> <img src="docs/home-boating-party.jpg" width="49%" alt="Home on Renoir's Luncheon of the Boating Party, with white ink">
+<img src="docs/home-indian-roller.jpg" width="49%" alt="Home on Shaikh Zain al-Din's Indian Roller, a light album page, with dark ink"> <img src="docs/home-boating-party.jpg" width="49%" alt="Home on Renoir's Luncheon of the Boating Party, with white ink">
 <img src="docs/home-ninth-wave.jpg" width="49%" alt="Home on Aivazovsky's The Ninth Wave">
 
 ### Idle
@@ -62,15 +62,13 @@ The default screensaver is the home screen with nothing else on it: the painting
 with the painting's title, artist and year bottom left. The framed Gallery is also available as a
 screensaver, and so is a plain drifting clock.
 
-<img src="docs/screensaver-oriole.jpg" width="49%" alt="Screensaver: Black-headed Oriole by Shaikh Zain al-Din, with a quote and caption"> <img src="docs/screensaver-temeraire.jpg" width="49%" alt="Screensaver: Turner's The Fighting Temeraire, with a quote and caption">
+<img src="docs/screensaver-oriole.jpg" width="49%" alt="Screensaver: Black-headed Oriole by Shaikh Zain al-Din, with a quote and caption"> <img src="docs/screensaver-breezing-up.jpg" width="49%" alt="Screensaver: Winslow Homer's Breezing Up, with a quote and caption">
 
 ### All apps
 
 The last tile in the dock opens every installed app in a grid over the dimmed painting.
 
 ![All apps grid over a dimmed painting](docs/all-apps.jpg)
-
-This screenshot is from a slightly older build, which still showed the quote in a box.
 
 ### The art
 
