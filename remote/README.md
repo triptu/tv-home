@@ -29,7 +29,7 @@ The button stays disabled until both values are set.
 
 ## Phone remote
 
-Turn on Phone remote in the panel. Scan the QR code, or copy the link to the phone. The link carries a fresh token in its fragment, and the page keeps the token only in memory. Turning the toggle off, or quitting, closes the listener and invalidates the link. It is plain HTTP on port 8765, meant for a home LAN.
+Turn on Phone remote in the panel. Scan the QR code, or copy the link to the phone. The link carries a fresh token in its fragment. The page keeps it in session storage, so a reload on the phone still works. Turning the toggle off, or quitting, closes the listener and invalidates the link. It is plain HTTP on port 8765, meant for a home LAN.
 
 ## Command line
 
