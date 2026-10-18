@@ -8,7 +8,6 @@ import android.content.pm.ApplicationInfo;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.GradientDrawable;
 import android.media.tv.TvContract;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
@@ -47,24 +46,29 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * tvOS style home: black, a pinned dock row, an app grid, and one glass highlight that springs between tiles.
+ * tvOS style home: a rotating picture backdrop, a pinned dock row, an app grid, and one glass highlight that
+ * springs between tiles.
  */
 public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /** Tiles per row and dock slots (res/values/config.xml, columns). Set in onCreate. */
     static int COLUMNS = 4;
     private static final long MINUTE_MS = 60_000L;
+    /** Started by name: the gallery is built separately and may not be in every build. */
+    private static final String GALLERY_ACTIVITY = "com.gathin.tvhome.gallery.GalleryActivity";
     private String liveTvPkg;
 
     private AppAdapter adapter;
     private RecyclerView grid;
     private FrameLayout root;
     private GlassView glass;
-    private View ambient;
+    private WallpaperView wallpaper;
+    private View quoteHost;
+    private View leftBlock;
     private TextView heroName;
-    private GradientDrawable ambientGlow;
-    private int ambientColor;
     private boolean heroShown;
+    private boolean quoteFits;
+    private boolean quoteShown = true;
     private TextView greeting;
     private TextView btnWifi;
     private SpringAnimation springX, springY;
@@ -109,14 +113,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         root = findViewById(R.id.root);
         glass = findViewById(R.id.glass);
-        ambient = findViewById(R.id.ambient);
         heroName = findViewById(R.id.heroName);
-        ambientGlow = new GradientDrawable();
-        ambientGlow.setGradientType(GradientDrawable.RADIAL_GRADIENT);
-        ambientGlow.setGradientCenter(0.32f, 0.42f);
-        ambient.setBackground(ambientGlow);
-        ambient.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
-                ambientGlow.setGradientRadius((r - l) * 0.62f));
+        leftBlock = findViewById(R.id.leftBlock);
+        wallpaper = findViewById(R.id.wallpaper);
+        quoteHost = findViewById(R.id.quoteHost);
+        wallpaper.bindQuote(findViewById(R.id.quote), findViewById(R.id.quoteText), findViewById(R.id.quoteAuthor));
+        quoteHost.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> placeQuote());
         greeting = findViewById(R.id.greeting);
         btnWifi = findViewById(R.id.btnWifi);
 
@@ -132,18 +134,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         // tvOS layout: push the dock row to the bottom of the screen; the grid hides below until you press Down.
         grid.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
-            int h = b - t;
-            int dockRow = (int) ((145 + 6 + 12) * density);   // item height plus DockDecoration offsets
-            int want = Math.max(0, h - dockRow - (int) (30 * density));
+            RecyclerView.LayoutManager lm = grid.getLayoutManager();
+            View dockItem = lm.findViewByPosition(0);
+            if (dockItem == null) return;
+            int want = Math.max(0, (b - t) - lm.getDecoratedMeasuredHeight(dockItem) - (int) (30 * density));
             if (grid.getPaddingTop() != want) {
                 grid.setPadding(grid.getPaddingLeft(), want, grid.getPaddingRight(), grid.getPaddingBottom());
             }
+            placeQuote();
         });
 
         // Keep the glass glued to its tile while the grid scrolls.
         grid.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
+                updateQuoteVisibility();
                 if (!glassShown) return;
                 glassTargetY -= dy;
                 if (springY.isRunning()) springY.animateToFinalPosition(glassTargetY);
@@ -158,8 +163,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             s.setSpring(new SpringForce().setStiffness(260f).setDampingRatio(0.58f));
         }
 
+        View btnGallery = findViewById(R.id.btnGallery);
         View btnInputs = findViewById(R.id.btnInputs);
         View btnSettings = findViewById(R.id.btnSettings);
+        btnGallery.setOnClickListener(v -> open(new Intent().setClassName(getPackageName(), GALLERY_ACTIVITY)));
         btnInputs.setOnClickListener(v -> showInputs());
         btnWifi.setOnClickListener(v -> open(new Intent(Settings.ACTION_WIFI_SETTINGS)));
         btnSettings.setOnClickListener(v -> open(new Intent(Settings.ACTION_SETTINGS)));
@@ -169,9 +176,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         View.OnKeyListener pillKeys = (v, keyCode, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return true;
-            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT && v.getId() == R.id.btnInputs) return true;
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT && v.getId() == R.id.btnGallery) return true;
             return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v.getId() == R.id.btnSettings;
         };
+        btnGallery.setOnKeyListener(pillKeys);
         btnInputs.setOnKeyListener(pillKeys);
         btnWifi.setOnKeyListener(pillKeys);
         btnSettings.setOnKeyListener(pillKeys);
@@ -193,7 +201,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         glass.setAlpha(0f);
         heroShown = false;
         heroName.setAlpha(0f);
-        ambient.setAlpha(0f);
+        wallpaper.start();
         // Read these before reload(): rebinding can move focus to the first tile and overwrite them.
         final String returnKey = lastFocusedKey;
         final int returnSlot = lastFocused;
@@ -215,6 +223,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onPause() {
         super.onPause();
         handler.removeCallbacks(minuteTick);
+        wallpaper.stop();
     }
 
     @Override
@@ -267,7 +276,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         View item = (View) card.getParent();
         if (position < COLUMNS) {
             // Dock: park it at the bottom of the screen and show the top shelf for this app.
-            int decoratedTop = item.getTop() - (int) (6 * density);
+            int decoratedTop = grid.getLayoutManager().getDecoratedTop(item);
             int dy = decoratedTop - grid.getPaddingTop();
             if (Math.abs(dy) > 1) grid.smoothScrollBy(0, dy);
             showHero(position, r.top - dy);
@@ -283,7 +292,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     private void showHero(int position, float dockTopInRoot) {
         String label = adapter.labelAt(position);
-        int color = adapter.ambientColorAt(position);
         float y = dockTopInRoot - 14 * density - 26 * density - heroName.getHeight();
         boolean changed = !label.contentEquals(heroName.getText());
 
@@ -292,8 +300,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             heroName.setY(y);
             heroName.setTranslationX(0f);
             heroName.animate().alpha(1f).setDuration(260).start();
-            setAmbient(color);
-            ambient.animate().alpha(1f).setDuration(600).start();
             heroShown = true;
         } else if (changed) {
             heroName.animate().alpha(0f).translationX(-12 * density).setDuration(120).withEndAction(() -> {
@@ -302,28 +308,46 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 heroName.setTranslationX(12 * density);
                 heroName.animate().alpha(1f).translationX(0f).setDuration(200).start();
             }).start();
-            if (color != ambientColor) {
-                ambient.animate().alpha(0.35f).setDuration(200).withEndAction(() -> {
-                    setAmbient(color);
-                    ambient.animate().alpha(1f).setDuration(500).start();
-                }).start();
-            }
         } else {
             heroName.setY(y);
         }
-    }
-
-    private void setAmbient(int color) {
-        ambientColor = color;
-        int c = color & 0x00FFFFFF;
-        ambientGlow.setColors(new int[]{0x5C000000 | c, 0x26000000 | c, 0x00000000 | c});
     }
 
     private void hideHero() {
         if (!heroShown) return;
         heroShown = false;
         heroName.animate().alpha(0f).setDuration(160).start();
-        ambient.animate().alpha(0f).setDuration(300).start();
+    }
+
+    // ---- quote -----------------------------------------------------------------------------------
+
+    /**
+     * Sits the quote's last line a gap above where the app name shows over the parked dock (see showHero),
+     * and hides it when it would reach the top bar.
+     */
+    private void placeQuote() {
+        Rect g = new Rect(0, 0, grid.getWidth(), grid.getHeight());
+        root.offsetDescendantRectToMyCoords(grid, g);
+        Rect bar = new Rect(0, 0, leftBlock.getWidth(), leftBlock.getHeight());
+        root.offsetDescendantRectToMyCoords(leftBlock, bar);
+        RecyclerView.LayoutManager lm = grid.getLayoutManager();
+        View dockItem = lm.findViewByPosition(0);
+        if (dockItem == null) return;
+        float cardTop = g.top + grid.getPaddingTop() + lm.getTopDecorationHeight(dockItem)
+                + dockItem.findViewById(R.id.card).getTop();
+        float heroTop = cardTop - 14 * density - 26 * density - heroName.getHeight();
+        float y = heroTop - 32 * density - quoteHost.getHeight();
+        quoteHost.setY(y);
+        quoteFits = y >= bar.bottom + 28 * density;
+        updateQuoteVisibility();
+    }
+
+    /** Only over the parked dock: once the grid scrolls up, tiles fill the space the quote uses. */
+    private void updateQuoteVisibility() {
+        boolean show = quoteFits && grid.computeVerticalScrollOffset() < 2 * density;
+        if (show == quoteShown) return;
+        quoteShown = show;
+        quoteHost.animate().alpha(show ? 1f : 0f).setDuration(show ? 400 : 160).start();
     }
 
     private void hideGlass() {
