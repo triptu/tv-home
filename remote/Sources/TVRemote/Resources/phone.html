@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>TV Remote</title>
+<style>
+  :root { font: 17px -apple-system, system-ui, sans-serif; --gap: 8px; }
+  body { margin: 0 auto; max-width: 28rem; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); }
+  h1 { font-size: 1.25rem; margin: 0; }
+  #status { color: GrayText; margin: 2px 0 12px; }
+  #result { min-height: 1.4em; margin: 12px 0; color: GrayText; }
+  #result.bad { color: #d33; }
+  section { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); margin-bottom: 12px; }
+  section.apps { grid-template-columns: repeat(2, 1fr); }
+  section.stream, section.url { grid-template-columns: 1fr; }
+  section.pad > :nth-child(1), section.pad > :nth-child(5) { grid-column: 2; }
+  section.pad > :nth-child(2) { grid-column: 1; }
+  button, input { min-height: 44px; font: inherit; border-radius: 10px; }
+  button { border: 0; background: color-mix(in srgb, CanvasText 10%, Canvas); color: CanvasText; }
+  button:disabled { opacity: 0.35; }
+  section.stream button { background: AccentColor; color: AccentColorText; }
+  input { border: 1px solid color-mix(in srgb, CanvasText 25%, Canvas); padding: 0 12px; background: Canvas; color: CanvasText; }
+  #offline { display: none; }
+  body.offline main { display: none; }
+  body.offline #offline { display: block; }
+</style>
+</head>
+<body>
+<h1 id="device">TV Remote</h1>
+<div id="status">Connecting to your Mac</div>
+<main>
+  <div id="groups"></div>
+  <div id="result" role="status"></div>
+</main>
+<div id="offline">
+  <p id="offline-text">Open TV Remote on your Mac.</p>
+  <button id="retry">Retry</button>
+</div>
+<script>
+if (location.hash.length > 1) sessionStorage.setItem("token", location.hash.slice(1));
+const token = sessionStorage.getItem("token") ?? "";
+history.replaceState(null, "", "/");
+const $ = (id) => document.getElementById(id);
+
+function offline(text) {
+  $("offline-text").textContent = text;
+  document.body.classList.add("offline");
+}
+
+async function api(method, path, body) {
+  let response;
+  try {
+    response = await fetch(path, {
+      method,
+      headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+      body: body && JSON.stringify(body),
+    });
+  } catch {
+    return offline("Open TV Remote on your Mac.");
+  }
+  if (response.status === 401) return offline("This link has expired. Scan the code on your Mac again.");
+  if (!response.ok) return offline("The Mac refused the request (" + response.status + ").");
+  document.body.classList.remove("offline");
+  render(await response.json());
+}
+
+function render(state) {
+  $("device").textContent = state.device;
+  $("status").textContent = state.status;
+  if (state.receipt) {
+    $("result").textContent = state.receipt.message;
+    $("result").className = ["failed", "unknown"].includes(state.receipt.kind) ? "bad" : "";
+  }
+  const typed = $("url")?.value ?? "";
+  const groups = $("groups");
+  groups.replaceChildren();
+  const sections = {};
+  for (const command of state.commands) {
+    if (!sections[command.group]) {
+      sections[command.group] = document.createElement("section");
+      sections[command.group].className = command.group;
+      groups.append(sections[command.group]);
+    }
+    const section = sections[command.group];
+    if (command.group === "url") {
+      const field = document.createElement("input");
+      field.type = "url";
+      field.placeholder = "Paste a web link";
+      field.id = "url";
+      field.value = typed;
+      section.append(field);
+    }
+    const button = document.createElement("button");
+    button.textContent = command.group === "url" ? "Send to TV" : command.label;
+    button.disabled = Boolean(command.reason);
+    button.title = command.reason || command.label;
+    button.onclick = () => {
+      const body = { id: command.id };
+      if (command.group === "url") body.url = $("url").value;
+      api("POST", "/api/command", body);
+    };
+    section.append(button);
+  }
+}
+
+$("retry").onclick = () => api("POST", "/api/refresh");
+if (token) {
+  api("GET", "/api/state").then(() => api("POST", "/api/refresh"));
+} else {
+  offline("Scan the code on your Mac to open this remote.");
+}
+</script>
+</body>
+</html>
