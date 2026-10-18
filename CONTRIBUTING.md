@@ -1,6 +1,6 @@
 # Contributing
 
-This is my own TV's home screen, but fixes and setups for other TVs are welcome.
+Fixes and setups for other TVs are welcome.
 
 ## Add your TV
 

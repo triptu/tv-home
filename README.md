@@ -4,9 +4,8 @@ A minimal home screen for Android TV and Google TV that shows a painting until y
 
 ![The home screen: Hokusai's Red Fuji with the clock, a quote by Dieter Rams and a dock of three apps](docs/home-red-fuji.jpg)
 
-I built it for my own TV, a TCL Google TV on Android 14 with 1 GB of RAM. It installs on any
-Android TV or Google TV with Android 8 or later, but I have only tested it on mine. This README
-covers how to set it up on yours.
+It is tested on a TCL Google TV on Android 14 with 1 GB of RAM, and installs on any Android TV or
+Google TV with Android 8 or later. This README covers how to set it up on yours.
 
 - [Why](#why)
 - [What you get](#what-you-get)
@@ -85,7 +84,7 @@ Gallery screensaver show all of them.
 
 ### Debloat
 
-[`device/tcl-g13/`](device/tcl-g13/) holds what I removed from my TV and the scripts that do it:
+[`device/tcl-g13/`](device/tcl-g13/) holds the debloat for the TCL G13 and the scripts that apply it:
 
 | File | What it does |
 |---|---|
@@ -94,7 +93,7 @@ Gallery screensaver show all of them.
 | `setup.sh` | Installs the launcher, applies both lists, sets it as the home screen and sets the screensaver and idle timeouts. |
 | `restore.sh` | Puts every removed and disabled package back. |
 
-On my TV, this home screen uses about 46 to 65 MB of memory (PSS). Google TV's own launcher and the
+On the TCL G13, this home screen uses about 46 to 65 MB of memory (PSS). Google TV's own launcher and the
 services around it used about 146 MB.
 
 ## Principles
@@ -211,13 +210,13 @@ cover more of the painting.
 ## Credits
 
 This started as a fork of [tv-vibehack](https://github.com/Gathin23/tv-vibehack) by Gathin23 (MIT),
-which debloats Android TVs and replaces the home screen with an Apple TV style launcher. From it I
-kept the launcher's base: the plain Java app, its package name `com.gathin.tvhome`, the All apps
+which debloats Android TVs and replaces the home screen with an Apple TV style launcher. The
+launcher's base comes from it: the plain Java app, its package name `com.gathin.tvhome`, the All apps
 grid, D-pad navigation, the Clock screensaver and the Outfit font. The debloat lists in
 `examples/` and the idea of an AI assistant doing the debloat ([`PROMPT.md`](PROMPT.md)) also come
 from there.
 
-I have since rebuilt it around the art: the rotating paintings and quotes, the adaptive ink and its
+Since then it has been reworked around the art: the rotating paintings and quotes, the adaptive ink and its
 test, Art mode, the art screensavers, the floating dock, the idle fade, the TCL G13 setup in
 `device/`, and the move to target SDK 34.
 
@@ -231,6 +230,6 @@ test, Art mode, the art screensavers, the floating dock, the idle fade, the TCL 
 
 ## Licence
 
-MIT, see [`LICENSE`](LICENSE). It keeps the original copyright line and adds mine. The fonts are
+MIT, see [`LICENSE`](LICENSE). It keeps the original copyright line and adds a second one for the changes since the fork. The fonts are
 under the SIL Open Font License, see `launcher/FONT-LICENSE-OFL.txt` and
 `launcher/FONT-LICENSE-OFL-CORMORANT.txt`.
