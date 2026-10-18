@@ -14,7 +14,7 @@
         <item name="android:padding">10dp</item>
         <item name="android:scaleType">fitCenter</item>
         <item name="android:background">@drawable/round_button_bg</item>
-        <item name="android:tint">@drawable/pill_text</item>
+        <item name="android:tint">@drawable/button_icon_tint</item>
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
     </style>

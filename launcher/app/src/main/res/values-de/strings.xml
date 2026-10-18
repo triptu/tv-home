@@ -2,13 +2,8 @@
 <resources>
     <string name="app_name">Home</string>
     <string name="art_mode">Kunstmodus</string>
-    <string name="inputs">Quellen</string>
     <string name="all_apps">Alle Apps</string>
     <string name="settings">Einstellungen</string>
-    <string name="connected">Verbunden</string>
-    <string name="not_connected">Kein Gerät</string>
-    <string name="live_tv">Live TV</string>
-    <string name="no_inputs">Keine Quellen gefunden</string>
     <string name="not_available">Auf diesem TV nicht verfügbar</string>
     <string name="cant_open">%1$s lässt sich nicht öffnen</string>
     <string name="date_format">EEEE, d. MMMM</string>

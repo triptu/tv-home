@@ -75,8 +75,8 @@ A home screen that is yours again:
   tile. The rest of your apps open in a panel over the art when you press Down or pick All apps.
 - **One floating glass highlight** that springs from tile to tile instead of each tile drawing its
   own border.
-- **Three round buttons**: Gallery (art mode), Inputs (a dropdown of HDMI ports, AV and Live TV)
-  and Settings.
+- **Two round buttons**: Art mode (framed paintings on a gallery wall, starting with the one on
+  screen) and Settings.
 - **A quiet clock and the date**, set in [Outfit](https://fonts.google.com/specimen/Outfit).
 - **A matching Clock screensaver**, optional, that drifts around the screen so nothing burns in.
 
@@ -150,7 +150,7 @@ AndroidX RecyclerView and nothing heavier. It is built for sets with 1 GB of RAM
 video, no network, no background services.
 
 **Configure** it in [`launcher/app/src/main/res/values/config.xml`](launcher/app/src/main/res/values/config.xml):
-the dock order, apps to hide, your TV's Live TV package, and the number of columns in the All apps grid.
+the dock order, apps to hide, and the number of columns in the All apps grid.
 
 **Build and install** with one command:
 

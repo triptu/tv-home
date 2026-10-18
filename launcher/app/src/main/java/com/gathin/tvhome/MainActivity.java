@@ -3,25 +3,14 @@ package com.gathin.tvhome;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.drawable.ColorDrawable;
-import android.media.tv.TvContract;
-import android.media.tv.TvInputInfo;
-import android.media.tv.TvInputManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -33,7 +22,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -57,7 +45,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** Top button that last had focus, or 0 when a tile had it. */
     private static int lastButtonId;
 
-    private String liveTvPkg;
     private int columns;
     private float density;
 
@@ -73,7 +60,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private AppAdapter gridAdapter;
     private boolean gridOpen;
     private boolean stopped = true;
-    private PopupWindow inputsPopup;
 
     private GlassView glass;
     private SpringAnimation springX, springY;
@@ -87,7 +73,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         setContentView(R.layout.activity_main);
         density = getResources().getDisplayMetrics().density;
         columns = Math.max(1, getResources().getInteger(R.integer.columns));
-        liveTvPkg = getString(R.string.live_tv_package).trim();
 
         root = findViewById(R.id.root);
         glass = findViewById(R.id.glass);
@@ -128,13 +113,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         View btnArt = findViewById(R.id.btnArt);
-        View btnInputs = findViewById(R.id.btnInputs);
         View btnSettings = findViewById(R.id.btnSettings);
         // Art mode opens on the painting the home screen is showing, fresh even if an old one was left open.
         btnArt.setOnClickListener(v -> open(new Intent().setClassName(getPackageName(), GALLERY_ACTIVITY)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 .putExtra(EXTRA_START_FILE, wallpaper.currentFile())));
-        btnInputs.setOnClickListener(v -> showInputs());
         btnSettings.setOnClickListener(v -> open(new Intent(Settings.ACTION_SETTINGS)));
 
         // Keep focus on the buttons at their ends and at the top; Down goes back to the dock tile focus came from.
@@ -159,7 +142,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             v.animate().scaleX(s).scaleY(s).setDuration(150).setInterpolator(ease).start();
             if (focused) lastButtonId = v.getId();
         };
-        for (View b : new View[]{btnArt, btnInputs, btnSettings}) {
+        for (View b : new View[]{btnArt, btnSettings}) {
             b.setOnKeyListener(buttonKeys);
             b.setOnFocusChangeListener(buttonFocus);
         }
@@ -210,7 +193,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onPause() {
         super.onPause();
         wallpaper.stop();
-        if (inputsPopup != null) inputsPopup.dismiss();
     }
 
     @Override
@@ -413,127 +395,5 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         } catch (ActivityNotFoundException e) {
             Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show();
         }
-    }
-
-    /** Dropdown menu under the Inputs pill: HDMI ports (with connection state), AV and Live TV. */
-    private void showInputs() {
-        View anchor = findViewById(R.id.btnInputs);
-        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
-        LinearLayout rows = panel.findViewById(R.id.rows);
-
-        // Compact: just wide enough for "HDMI 1" and a status.
-        int width = (int) (160 * density);
-        final PopupWindow popup = new PopupWindow(panel, width, ViewGroup.LayoutParams.WRAP_CONTENT, true);
-        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));   // needed for Back to dismiss
-        popup.setOutsideTouchable(true);
-        popup.setAnimationStyle(0);
-        popup.setElevation(0f);
-
-        TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
-        boolean sawNonHdmi = false;
-        String tunerId = null;
-        if (tim != null) {
-            List<TvInputInfo> inputs = new ArrayList<>(tim.getTvInputList());
-            // HDMI ports first in port order, then AV and the rest.
-            Collections.sort(inputs, (a, b) -> {
-                boolean ha = a.getType() == TvInputInfo.TYPE_HDMI, hb = b.getType() == TvInputInfo.TYPE_HDMI;
-                if (ha != hb) return ha ? -1 : 1;
-                return String.valueOf(a.loadLabel(this)).compareToIgnoreCase(String.valueOf(b.loadLabel(this)));
-            });
-            // Some TVs (Sony) report every HDMI port as connected whether or not anything is plugged in,
-            // so drop the HDMI status then. A TV with every port really in use loses it too.
-            int hdmiPorts = 0, hdmiConnected = 0;
-            for (TvInputInfo info : inputs) {
-                if (!info.isPassthroughInput() || info.getType() != TvInputInfo.TYPE_HDMI) continue;
-                hdmiPorts++;
-                if (tim.getInputState(info.getId()) == TvInputManager.INPUT_STATE_CONNECTED) hdmiConnected++;
-            }
-            boolean hdmiStateBogus = hdmiPorts > 1 && hdmiConnected == hdmiPorts;
-            for (TvInputInfo info : inputs) {
-                if (info.getType() == TvInputInfo.TYPE_TUNER
-                        && (info.getServiceInfo().applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0
-                        && (tunerId == null || info.getId().compareTo(tunerId) < 0)) {
-                    tunerId = info.getId();
-                }
-                if (!info.isPassthroughInput()) continue;
-                CharSequence l = info.loadLabel(this);
-                String label = l == null ? info.getId() : l.toString();
-                boolean hdmi = info.getType() == TvInputInfo.TYPE_HDMI;
-                if (hdmi && !label.toUpperCase().contains("HDMI")) label = "HDMI " + label;
-                final String id = info.getId();
-                int state = hdmi && hdmiStateBogus ? -1 : tim.getInputState(id);
-                if (!hdmi && rows.getChildCount() > 0 && !sawNonHdmi) addSeparator(rows);
-                if (!hdmi) sawNonHdmi = true;
-                addInputRow(rows, popup, hdmi ? R.drawable.ic_input : R.drawable.ic_av, label, state,
-                        () -> open(new Intent(Intent.ACTION_VIEW).setDataAndType(
-                                TvContract.buildChannelUriForPassthroughInput(id), "vnd.android.cursor.item/channel")));
-            }
-        }
-        Intent liveTv = liveTvPkg.isEmpty() ? null : getPackageManager().getLeanbackLaunchIntentForPackage(liveTvPkg);
-        if (liveTv != null && tunerId != null) {
-            liveTv = new Intent(Intent.ACTION_VIEW)
-                    .setDataAndType(TvContract.buildChannelUriForPassthroughInput(tunerId), "vnd.android.cursor.item/channel")
-                    .setPackage(liveTvPkg);
-        }
-        if (liveTv != null) {
-            if (rows.getChildCount() > 0) addSeparator(rows);
-            final Intent liveTvIntent = liveTv;
-            addInputRow(rows, popup, R.drawable.ic_livetv, getString(R.string.live_tv), -1, () -> open(liveTvIntent));
-        }
-        if (rows.getChildCount() == 0) {
-            Toast.makeText(this, R.string.no_inputs, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Fit the widest row: TVs that report a status on every port (Sony) would otherwise squeeze the names out.
-        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        popup.setWidth(Math.max(width, panel.getMeasuredWidth()));
-
-        // Drop in: fade and unfold from the top edge.
-        panel.setAlpha(0f);
-        panel.setPivotY(0f);
-        panel.setScaleY(0.92f);
-        panel.setTranslationY(-8 * density);
-        // Hangs below the button, its right edge on the button row's right edge.
-        View row = findViewById(R.id.topButtons);
-        popup.showAsDropDown(anchor, row.getWidth() - anchor.getRight(), (int) (12 * density), Gravity.END);
-        inputsPopup = popup;
-        panel.animate().alpha(1f).scaleY(1f).translationY(0f).setDuration(220)
-                .setInterpolator(ease).start();
-        rows.getChildAt(0).requestFocus();
-    }
-
-    private void addSeparator(LinearLayout rows) {
-        View line = new View(this);
-        line.setBackgroundColor(0x1FFFFFFF);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) density);
-        int m = (int) (6 * density), h = (int) (12 * density);
-        lp.setMargins(h, m, h, m);
-        rows.addView(line, lp);
-    }
-
-    private void addInputRow(LinearLayout rows, PopupWindow popup, int iconRes, String title, int state, Runnable action) {
-        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
-        ((ImageView) row.findViewById(R.id.icon)).setImageResource(iconRes);
-        ((TextView) row.findViewById(R.id.title)).setText(title);
-        TextView status = row.findViewById(R.id.status);
-        View dot = row.findViewById(R.id.dot);
-        // This TV reports "standby" for every port whether or not something is plugged in, so only
-        // definite states are shown.
-        if (state == TvInputManager.INPUT_STATE_CONNECTED) {
-            status.setText(R.string.connected);
-            dot.setVisibility(View.VISIBLE);
-        } else if (state == TvInputManager.INPUT_STATE_DISCONNECTED) {
-            status.setText(R.string.not_connected);
-            dot.setVisibility(View.GONE);
-        } else {
-            status.setVisibility(View.GONE);
-            dot.setVisibility(View.GONE);
-        }
-        row.setOnClickListener(v -> {
-            popup.dismiss();
-            action.run();
-        });
-        rows.addView(row);
     }
 }

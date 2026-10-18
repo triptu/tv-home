@@ -4,7 +4,7 @@
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
-    <!-- Package visibility (targetSdk 30+): the apps the grid and dock list, and the TV inputs. -->
+    <!-- Package visibility (targetSdk 30+): the apps the grid and dock list. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
@@ -13,10 +13,6 @@
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:mimeType="vnd.android.cursor.item/channel" />
         </intent>
     </queries>
 
