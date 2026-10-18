@@ -10,6 +10,7 @@ if pgrep -f "$app/Contents/MacOS/TVRemote" >/dev/null; then
   exit 1
 fi
 
+[ -f AppIcon.icns ] || swift make-icon.swift
 swift build -c release --scratch-path "$scratch"
 bin="$(swift build -c release --scratch-path "$scratch" --show-bin-path)"
 
@@ -18,6 +19,7 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp Info.plist "$app/Contents/Info.plist"
 cp "$bin/TVRemote" "$app/Contents/MacOS/TVRemote"
 cp -R "$bin/TVRemote_TVRemote.bundle" "$app/Contents/Resources/"
+cp AppIcon.icns "$app/Contents/Resources/AppIcon.icns"
 
 identity="$(security find-identity -v -p codesigning | awk -F'"' '/Apple Development/ { print $2; exit }')"
 codesign --force --sign "${identity:--}" "$app"
