@@ -87,13 +87,14 @@
                     android:maxLines="3"
                     android:ellipsize="end"
                     android:breakStrategy="balanced"
-                    android:textColor="#E6FFFFFF"
+                    android:textColor="#FAFFFFFF"
                     android:textSize="15sp"
                     android:lineSpacingMultiplier="1.2"
                     android:fontFamily="@font/outfit"
-                    android:fontVariationSettings="'wght' 300"
-                    android:shadowColor="#66000000"
-                    android:shadowRadius="6" />
+                    android:fontVariationSettings="'wght' 400"
+                    android:shadowColor="#99000000"
+                    android:shadowRadius="3"
+                    android:shadowDy="1" />
 
                 <TextView
                     android:id="@+id/quoteAuthor"
@@ -101,14 +102,15 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:singleLine="true"
-                    android:textColor="#B3FFFFFF"
+                    android:textColor="#D9FFFFFF"
                     android:textSize="10sp"
                     android:fontFamily="@font/outfit"
                     android:fontVariationSettings="'wght' 500"
                     android:letterSpacing="0.2"
                     android:textAllCaps="true"
-                    android:shadowColor="#66000000"
-                    android:shadowRadius="6" />
+                    android:shadowColor="#99000000"
+                    android:shadowRadius="3"
+                    android:shadowDy="1" />
             </LinearLayout>
         </FrameLayout>
     </LinearLayout>
