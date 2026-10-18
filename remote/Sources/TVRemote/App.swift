@@ -3,7 +3,8 @@ import SwiftUI
 @main enum Main {
     static func main() {
         let arguments = Array(CommandLine.arguments.dropFirst())
-        guard arguments.contains(where: { ["--probe", "--run"].contains($0) }) else { return TVRemoteApp.main() }
+        guard arguments.contains(where: { ["--probe", "--run", "--phone"].contains($0) }) else { return TVRemoteApp.main() }
+        setvbuf(stdout, nil, _IOLBF, 0)
         Task { @MainActor in
             await commandLine(arguments)
             exit(0)
@@ -45,4 +46,9 @@ extension Connection {
     for (flag, id) in zip(arguments, arguments.dropFirst()) where flag == "--run" {
         report(id, await remote.perform(id))
     }
+    guard arguments.contains("--phone") else { return }
+    await remote.setPhone(true)
+    guard let url = remote.phone?.url else { return print("phone: \(remote.operation)") }
+    print("phone: \(url.absoluteString)")
+    while true { try? await Task.sleep(for: .seconds(3600)) }
 }

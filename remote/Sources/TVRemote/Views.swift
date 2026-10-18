@@ -1,3 +1,4 @@
+import CoreImage.CIFilterBuiltins
 import ServiceManagement
 import SwiftUI
 
@@ -68,6 +69,21 @@ struct RemoteView: View {
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Toggle("Phone remote", isOn: Binding(get: { remote.phone != nil }, set: { on in Task { await remote.setPhone(on) } }))
+            if let url = remote.phone?.url {
+                HStack(alignment: .top) {
+                    if let code = qrCode(url.absoluteString) {
+                        Image(nsImage: code).interpolation(.none).resizable().frame(width: 120, height: 120)
+                    }
+                    VStack(alignment: .leading) {
+                        Text("Scan with your phone on the same Wi-Fi.").font(.caption)
+                        Button("Copy link") {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(url.absoluteString, forType: .string)
+                        }
+                    }
+                }
+            }
             Toggle("Open at login", isOn: Binding(
                 get: { SMAppService.mainApp.status == .enabled },
                 set: { try? $0 ? SMAppService.mainApp.register() : SMAppService.mainApp.unregister() }))
@@ -136,4 +152,11 @@ struct SettingsView: View {
         .frame(width: 420)
         .onAppear { draft = remote.settings }
     }
+}
+
+private func qrCode(_ text: String) -> NSImage? {
+    let filter = CIFilter.qrCodeGenerator()
+    filter.message = Data(text.utf8)
+    guard let image = filter.outputImage, let cgImage = CIContext().createCGImage(image, from: image.extent) else { return nil }
+    return NSImage(cgImage: cgImage, size: image.extent.size)
 }

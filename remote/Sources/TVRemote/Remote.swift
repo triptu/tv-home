@@ -5,6 +5,7 @@ import Observation
     private(set) var settings: Settings
     private(set) var snapshot = Snapshot(.unchecked)
     private(set) var operation = Operation.idle
+    private(set) var phone: Phone?
     private var adb: ADB
     private let settingsURL = URL.applicationSupportDirectory.appending(path: "TVRemote/settings.json")
 
@@ -30,6 +31,15 @@ import Observation
 
     func sendClipboardURL() async {
         await perform("url", url: NSPasteboard.general.string(forType: .string) ?? "")
+    }
+
+    func setPhone(_ on: Bool) async {
+        phone?.stop()
+        phone = nil
+        guard on else { return }
+        do { phone = try await Phone(remote: self) } catch {
+            operation = .finished(Receipt(.failed, (error as? Refusal)?.reason ?? error.localizedDescription))
+        }
     }
 
     func save(_ new: Settings) throws {
