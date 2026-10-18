@@ -1,7 +1,9 @@
-# Examples
+# Debloat lists from other TVs
 
-One folder per TV model, each with a `debloat.txt` listing the packages that are safe to disable
-on that firmware, grouped and commented. These are starting points: comment out anything you use.
+These lists come from the original project, tv-vibehack, where people contributed them for their
+own TVs. Each `debloat.txt` lists packages that were safe to disable on that firmware, grouped and
+commented. They are a reference for building your own `device/<your-tv>/disabled.txt`. Comment
+out or skip anything you use.
 
 | Folder | TV | OS | Notes |
 |---|---|---|---|
@@ -11,5 +13,5 @@ on that firmware, grouped and commented. These are starting points: comment out 
 | `sanyo-atv-r2/` | SANYO ATV R2 (SCBC, Realtek RTD285O) | Android TV 9 | S-Channels, E-SHOW demo, Vewd, TV Booster, SANYO OTA |
 | `oneplus-tv-dubai/` | OnePlus TV (D00, Dubai) | Google TV 14 | HeyTap/OnePlus extras, OnePlus Connect, Smart Home |
 
-To add your TV, see [CONTRIBUTING.md](../CONTRIBUTING.md). The quickest way to get a list is to
-run the prompt in [PROMPT.md](../PROMPT.md) and copy the packages your assistant disabled.
+To set up your own TV, see [Use it on your TV](../README.md#use-it-on-your-tv) in the README, or
+hand [PROMPT.md](../PROMPT.md) to an AI assistant.

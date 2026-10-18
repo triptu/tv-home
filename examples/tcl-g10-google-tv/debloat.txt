@@ -2,8 +2,6 @@
 # Android 12 (Google TV, basic mode), firmware STT2.230203.001, software V8-R75PT01-LF1V499
 # Likely a good starting point for other 2023+ TCL Google TV sets on the Realtek G10 platform.
 #
-# Apply:   TV_HOST=<tv ip> tools/disable.sh examples/tcl-g10-google-tv/debloat.txt
-# Undo:    TV_HOST=<tv ip> tools/restore.sh examples/tcl-g10-google-tv/debloat.txt com.google.android.apps.tv.launcherx
 # Everything is DISABLED, not uninstalled. Comment out any line you want to keep.
 #
 # Stock launcher: com.google.android.apps.tv.launcherx (pass it to restore.sh, the default is wrong here).
@@ -15,7 +13,7 @@
 # - The red "TV" tile disappears from the Google TV Home row after this list (probably
 #   com.tcl.partnercustomizer). TV stays in the Apps row and behind the Inputs tile.
 # - Disabling dreamx leaves screensaver_components pointing at it. Switch to the AOSP fallback with
-#   tools/tv.py 'settings put secure screensaver_components com.android.dreams.basic/.Colors'
+#   adb shell 'settings put secure screensaver_components com.android.dreams.basic/.Colors'
 # - screencap writes an empty file while Live TV/HDMI is on screen. Press Home first.
 # - The Google TV promo banner is drawn by launcherx itself, so only launcher/ removes it.
 

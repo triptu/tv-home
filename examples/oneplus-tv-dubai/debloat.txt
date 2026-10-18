@@ -1,8 +1,6 @@
 # OnePlus TV (model D00, codename Dubai), Google TV / Android 14, firmware UTT1.240928.001
 # Live TV app: com.heytap.tv.livetv. Stock launcher: com.google.android.tvlauncher.
 #
-# Apply:   TV_HOST=<tv ip> tools/disable.sh examples/oneplus-tv-dubai/debloat.txt
-# Undo:    TV_HOST=<tv ip> tools/restore.sh examples/oneplus-tv-dubai/debloat.txt
 # Everything is DISABLED, not uninstalled. Comment out any line you want to keep.
 #
 # Kept on purpose: Google Assistant (com.google.android.katniss), Chromecast
