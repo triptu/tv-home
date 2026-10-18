@@ -2,7 +2,7 @@
 
 A minimal home screen for Android TV and Google TV that shows a painting until you want to watch something.
 
-![The home screen: Hokusai's Great Wave with the clock, a quote by Frida Kahlo and a dock of three apps](docs/home-great-wave.jpg)
+![An album painting of an oriole with the clock and a quote by Dieter Rams: Less, but better.](docs/hero-less-but-better.jpg)
 
 It installs on any Android TV or Google TV with Android 8 or later.
 
@@ -35,7 +35,7 @@ Cards are muted until you focus one, then it lifts.
 The quote's ink changes with each painting: dark ink on light paper, white ink on dark or busy
 paintings, with just enough shade behind it to stay readable.
 
-<img src="docs/home-indian-roller.jpg" width="49%" alt="Home on Shaikh Zain al-Din's Indian Roller, a light album page, with dark ink"> <img src="docs/home-boating-party.jpg" width="49%" alt="Home on Renoir's Luncheon of the Boating Party, with white ink">
+<img src="docs/home-radha.jpg" width="49%" alt="Home on a Pahari miniature of Radha, with white ink"> <img src="docs/home-sainte-adresse.jpg" width="49%" alt="Home on Monet's The Beach at Sainte-Adresse, with dark ink">
 <img src="docs/home-ninth-wave.jpg" width="49%" alt="Home on Aivazovsky's The Ninth Wave">
 
 ### Idle
