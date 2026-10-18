@@ -1,8 +1,8 @@
 #!/bin/sh
 # Installs the launcher on the TV and applies the home, screensaver and debloat settings.
-# Usage: device/tcl-g13/setup.sh [serial]   (build first: cd launcher && ./gradlew assembleDebug)
+# Usage: device/tcl-g13/setup.sh <ip:port>   (build first: cd launcher && ./gradlew assembleDebug)
 set -e
-export ANDROID_SERIAL=${1:-192.168.1.30:5555}
+export ANDROID_SERIAL=${1:?usage: $0 <ip:port>}
 ADB=${ADB:-$(command -v adb || echo "$HOME/Library/Android/sdk/platform-tools/adb")}
 DIR=$(dirname "$0")
 $ADB install -r "$DIR/../../launcher/app/build/outputs/apk/debug/app-debug.apk"

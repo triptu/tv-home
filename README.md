@@ -4,13 +4,12 @@ A minimal home screen for Android TV and Google TV that shows a painting until y
 
 ![The home screen: Hokusai's Red Fuji with the clock, a quote by Dieter Rams and a dock of three apps](docs/home-red-fuji.jpg)
 
-It is tested on a TCL Google TV on Android 14 with 1 GB of RAM, and installs on any Android TV or
-Google TV with Android 8 or later. This README covers how to set it up on yours.
+It installs on any Android TV or Google TV with Android 8 or later.
 
 - [Why](#why)
 - [What you get](#what-you-get)
 - [Principles](#principles)
-- [Use it on your TV](#use-it-on-your-tv)
+- [Set it up on your TV](#set-it-up-on-your-tv)
 - [Credits](#credits)
 - [Licence](#licence)
 
@@ -18,7 +17,7 @@ Google TV with Android 8 or later. This README covers how to set it up on yours.
 
 <img src="docs/stock-google-tv.jpg" width="200" align="right" alt="The stock Google TV home: a Prime Video ad, Top picks for you and an app row">
 
-The stock Google TV home screen is mostly ads and rows of recommendations. On a 1 GB TV it is also
+The stock Google TV home screen is mostly ads and rows of recommendations. On TVs with little memory it is also
 slow.
 
 This home screen shows one painting at a time, a clock and a quote, plus the few apps you
@@ -84,17 +83,9 @@ Gallery screensaver show all of them.
 
 ### Debloat
 
-[`device/tcl-g13/`](device/tcl-g13/) holds the debloat for the TCL G13 and the scripts that apply it:
-
-| File | What it does |
-|---|---|
-| `removed.txt` | Apps uninstalled for the main user (preloaded streaming apps, demos, TCL extras). They stay on the system partition. |
-| `disabled.txt` | Packages disabled: the Google TV launcher, ads, ambient mode and telemetry services. |
-| `setup.sh` | Installs the launcher, applies both lists, sets it as the home screen and sets the screensaver and idle timeouts. |
-| `restore.sh` | Puts every removed and disabled package back. |
-
-On the TCL G13, this home screen uses about 46 to 65 MB of memory (PSS). Google TV's own launcher and the
-services around it used about 146 MB.
+The TV's ads, recommendation rows, demos and telemetry are switched off, and the apps you don't use
+are removed. Nothing is rooted or flashed, and one script puts it all back. The home screen uses less
+than half the memory of Google TV's own launcher.
 
 ### Mac and phone remote
 
@@ -111,107 +102,25 @@ Wi-Fi gets the same buttons from a page the Mac serves. See [`remote/README.md`]
 - **Small and fast on cheap hardware.** Plain Java with RecyclerView, no blur, no video, no background services.
 - **Everything reversible.** Nothing is flashed or rooted. Each change in `device/` has a restore.
 
-## Use it on your TV
+## Set it up on your TV
 
-### What you need
+Let a coding agent do it. That is how this one was made: an agent connected to the TV over Wi-Fi,
+looked at it through screenshots, asked a few questions and did the rest.
 
-- On the TV: Settings → System → About → press OK on **Android TV OS build** seven times to turn
-  on Developer options (on some TVs it is under Device Preferences → About → Build). Then in
-  Developer options, turn on **USB debugging**, and **Wireless debugging** if the TV has it.
-- On your computer: `adb` (Android platform-tools), JDK 17 and the Android SDK with platform 34.
-  On macOS: `brew install openjdk@17`, `brew install --cask android-platform-tools android-commandlinetools`,
-  then `sdkmanager "platforms;android-34" "build-tools;34.0.0"`.
+1. On the TV, turn on Developer options (press OK on the build number in Settings → About seven
+   times), then turn on USB debugging and Wireless debugging.
+2. On a computer on the same Wi-Fi, open Claude Code, Codex or another coding agent and give it this:
 
-Connect to the TV. With Wireless debugging, the TV shows an IP, a port and a pairing code:
+   > Set up github.com/triptu/tv-home on my TV. Follow PROMPT.md in that repo.
 
-```bash
-adb pair 192.168.1.30:37115      # the pairing port and code from the TV's pairing screen
-adb connect 192.168.1.30:5555    # or the port shown under Wireless debugging
-```
+3. Answer its questions: which apps you use, which go in the dock, what to keep. Accept the
+   "Allow debugging?" prompt on the TV when it appears.
 
-TVs without Wireless debugging listen on port 5555 once USB debugging is on. Accept the "Allow
-debugging?" prompt on the TV.
+After that, ask it for whatever you want: different apps in the dock, your own paintings or photos,
+more quotes, a different screensaver, putting everything back the way it was. The details it needs
+are in [`PROMPT.md`](PROMPT.md).
 
-### Pick your apps
-
-Edit [`launcher/app/src/main/res/values/config.xml`](launcher/app/src/main/res/values/config.xml).
-`dock_apps` lists the package names for the dock, in order. `hidden_apps` lists apps to leave out
-of All apps. To find package names:
-
-```bash
-adb shell pm list packages -3     # apps you installed
-```
-
-### Build
-
-```bash
-cd launcher
-./gradlew assembleDebug           # writes app/build/outputs/apk/debug/app-debug.apk
-./gradlew testDebugUnitTest       # the ink contrast test over every home picture
-```
-
-If Gradle can't find the SDK, set `ANDROID_HOME` or write `sdk.dir=/path/to/sdk` into
-`launcher/local.properties`.
-
-### Install and set up
-
-On a TCL Google TV like the G13, one script does all of it:
-
-```bash
-device/tcl-g13/setup.sh 192.168.1.30:5555
-```
-
-For another TV, copy the folder and edit the lists:
-
-```bash
-cp -r device/tcl-g13 device/my-tv
-adb shell pm list packages        # everything installed
-adb shell pm list packages -s     # system packages only
-adb shell dumpsys package <name>  # what a package does: its activities and services
-```
-
-Put packages to uninstall in `removed.txt` and packages to disable in `disabled.txt`. Leave the
-Play Store, Play Services, the keyboard, the remote and Bluetooth services, and the TV's input and
-tuner apps alone. [`examples/`](examples/) has debloat lists other people made for Xiaomi, TCL,
-Sanyo and OnePlus TVs, which help you tell what is safe. Then run `device/my-tv/setup.sh <ip:port>`.
-
-To undo everything, run `device/my-tv/restore.sh <serial>`. Apps removed with
-`pm uninstall --user 0` stay on the system partition, so `cmd package install-existing` brings them
-back. If the scripts are gone, a factory reset also restores every app.
-
-Two things that matter on Google TV:
-
-- **Play Protect blocks old apps.** Google TV blocks sideloaded apps that target an old Android
-  version. The launcher targets SDK 34 for this reason. Keep it there or higher.
-- **Google TV takes Home back.** Setting this launcher as the home app is not enough on its own.
-  The Google TV launcher (`com.google.android.apps.tv.launcherx`) and its setup wizard
-  (`com.google.android.tungsten.setupwraith`) must be disabled, or the Home button returns to
-  Google TV. Both are in `device/tcl-g13/disabled.txt`.
-
-To pick a screensaver by hand:
-
-```bash
-adb shell settings put secure screensaver_components com.gathin.tvhome/.ArtDream          # home painting and quote
-adb shell settings put secure screensaver_components com.gathin.tvhome/.gallery.ArtDream  # framed gallery
-adb shell settings put secure screensaver_components com.gathin.tvhome/.ClockDream        # drifting clock
-```
-
-### Add your own art
-
-1. Put a JPEG in [`launcher/app/src/main/assets/art/`](launcher/app/src/main/assets/art/). The
-   others are about 1920 pixels on the long side.
-2. Add an entry to [`catalog.json`](launcher/app/src/main/assets/art/catalog.json) with `file`,
-   `title`, `artist`, `year`, `kind` (`painting` or `space`), `width`, `height` and `credit`.
-   Pictures at least 1.3 times wider than tall also appear on the home screen.
-3. Run `./gradlew testDebugUnitTest`. The test prints the ink picked for each picture and fails if
-   any text on it falls below 4.5:1. Add `-PinkSheet=/tmp/ink.png` to get a contact sheet of every
-   home screen to look over.
-
-### Add quotes
-
-Quotes live in [`launcher/app/src/main/assets/quotes.json`](launcher/app/src/main/assets/quotes.json),
-one `{"text": ..., "author": ...}` per quote. Keep them short. Long quotes wrap to more lines and
-cover more of the painting.
+It works on Android TV and Google TV, not on Samsung, LG or Fire TV.
 
 ## Credits
 
@@ -223,7 +132,7 @@ grid, D-pad navigation, the Clock screensaver and the Outfit font. The debloat l
 from there.
 
 Since then it has been reworked around the art: the rotating paintings and quotes, the adaptive ink and its
-test, Art mode, the art screensavers, the floating dock, the idle fade, the TCL G13 setup in
+test, Art mode, the art screensavers, the floating dock, the idle fade, the debloat setup in
 `device/`, and the move to target SDK 34.
 
 - **Art:** public domain or CC0, from The Metropolitan Museum of Art, the National Gallery of Art,

@@ -15,7 +15,7 @@ Fixes and setups for other TVs are welcome.
 ## Change the launcher
 
 The launcher in `launcher/` is plain Java with AndroidX RecyclerView. It is meant for TVs with
-1 GB of RAM:
+little memory:
 
 - No blur, no video, no network access, no background services.
 - Anything that differs per TV goes in `app/src/main/res/values/config.xml`, not in code.
