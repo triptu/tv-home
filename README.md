@@ -70,11 +70,10 @@ first time; with this repo as context, people report about fifteen minutes.
 A home screen that is yours again:
 
 - **Art first**: a rotating public-domain painting with a slow pan and zoom, and a short quote
-  with each one.
-- **A small dock** of your favourite apps at the bottom on a faint glass strip, plus an All apps
-  tile. The rest of your apps open in a panel over the art when you press Down or pick All apps.
-- **One floating glass highlight** that springs from tile to tile instead of each tile drawing its
-  own border.
+  with each one under the clock. After a few idle seconds everything else fades back.
+- **A small dock** of your favourite apps floating on the art, muted until focused, plus an All
+  apps tile. The rest of your apps open in a panel over the art when you press Down or pick All apps.
+- **tvOS-style focus**: the focused card lifts into full colour with a white ring.
 - **Two round buttons**: Art mode (framed paintings on a gallery wall, starting with the one on
   screen) and Settings.
 - **A quiet clock and the date**, set in [Outfit](https://fonts.google.com/specimen/Outfit).
