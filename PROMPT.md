@@ -67,6 +67,9 @@ the dock. Decide everything else yourself. Everything you change must be reversi
   `year`, `kind`, `width`, `height`, `credit`). Pictures at least 1.3 times wider than tall also
   show on the home screen. Run `./gradlew testDebugUnitTest`: it fails if any text on a picture
   falls below 4.5:1 contrast, and `-PinkSheet=/tmp/ink.png` writes a contact sheet to check.
+- **How long each painting stays:** `art_interval_seconds` in `config.xml` (45 by default). To change
+  it without rebuilding: `adb shell am start -n com.gathin.tvhome/.MainActivity --ei
+  art_interval_seconds 3`, and `0` to go back to the default. Handy for taking screenshots quickly.
 - **Quotes:** `launcher/app/src/main/assets/quotes.json`, one `{"text", "author"}` each. Keep them
   short and check the attribution.
 - **Undo everything:** `device/<brand>-<model>/restore.sh <ip:port>`.

@@ -18,6 +18,10 @@
         <item>com.mitv.gallery</item>
     </string-array>
 
+    <!-- Seconds each painting stays on the home screen and screensaver. To change it without rebuilding,
+         start home with the int extra art_interval_seconds over adb (see MainActivity.readSettings). -->
+    <integer name="art_interval_seconds">45</integer>
+
     <!-- Tiles per row in the All apps grid. The dock shows the dock_apps above plus an All apps tile. -->
     <integer name="columns">6</integer>
 </resources>

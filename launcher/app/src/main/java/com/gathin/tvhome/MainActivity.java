@@ -80,6 +80,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        readSettings(getIntent());
         setContentView(R.layout.activity_main);
         density = getResources().getDisplayMetrics().density;
         columns = Math.max(1, getResources().getInteger(R.integer.columns));
@@ -145,11 +146,22 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        readSettings(intent);
         // Home pressed while home is already showing: start over from the first dock app.
         if (!stopped) {
             lastDockKey = null;
             lastDockSlot = 0;
             lastButtonId = 0;
+        }
+    }
+
+    /**
+     * Settings passed when starting home over adb, e.g.
+     * {@code am start -n com.gathin.tvhome/.MainActivity --ei art_interval_seconds 3} (0 resets to config.xml).
+     */
+    private void readSettings(Intent intent) {
+        if (intent != null && intent.hasExtra("art_interval_seconds")) {
+            WallpaperView.setIntervalSeconds(this, intent.getIntExtra("art_interval_seconds", 0));
         }
     }
 

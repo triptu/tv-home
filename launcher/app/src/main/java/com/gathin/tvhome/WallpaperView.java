@@ -52,11 +52,10 @@ import java.util.concurrent.Executors;
 public class WallpaperView extends FrameLayout {
 
     private static final String DIR = "art";
-    private static final long INTERVAL_MS = 45_000L;
+    /** Saved override for the time each picture stays, in seconds; see {@link #setIntervalSeconds}. */
+    private static final String PREFS = "wallpaper", KEY_INTERVAL = "art_interval_seconds";
     private static final long FADE_MS = 2_000L;
     private static final long FIRST_FADE_MS = 250L;
-    /** Each picture is on screen while fading in, for the interval, and while the next fades in over it. */
-    private static final long MOTION_MS = FADE_MS + INTERVAL_MS + FADE_MS;
     private static final float ZOOM = 1.08f;
     /** Pan per axis as a fraction of the view, inside the (ZOOM - 1) / 2 margin the zoom leaves. */
     private static final float PAN = 0.03f;
@@ -104,7 +103,7 @@ public class WallpaperView extends FrameLayout {
     private boolean zoomIn = true;
     /** Uptime of the next scheduled advance, or 0 while none is scheduled. */
     private long nextAt;
-    private long remainingMs = INTERVAL_MS;
+    private long remainingMs = -1;
     /** Bumped on stop and per load, so a decode that finishes late is dropped. */
     private int request;
 
@@ -124,6 +123,18 @@ public class WallpaperView extends FrameLayout {
             quotes = readQuotes(assets);
             Collections.shuffle(quotes);
         }
+    }
+
+    /** How long each picture stays: the saved override if there is one, otherwise config.xml. */
+    long intervalMs() {
+        int s = getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_INTERVAL, 0);
+        if (s <= 0) s = getResources().getInteger(R.integer.art_interval_seconds);
+        return s * 1000L;
+    }
+
+    /** Saves how long each picture stays, for the home screen and the screensaver; 0 or less resets it. */
+    static void setIntervalSeconds(Context context, int seconds) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(KEY_INTERVAL, Math.max(0, seconds)).apply();
     }
 
     /** The quote shown with each picture: box is faded with it, text and author are filled in. */
@@ -161,7 +172,7 @@ public class WallpaperView extends FrameLayout {
             load(false);
         } else {
             if (motion[front] != null) motion[front].resume();
-            schedule(remainingMs);
+            schedule(remainingMs >= 0 ? remainingMs : intervalMs());
         }
     }
 
@@ -171,7 +182,7 @@ public class WallpaperView extends FrameLayout {
         running = false;
         request++;
         handler.removeCallbacks(advance);
-        remainingMs = nextAt > 0 ? Math.max(0, nextAt - SystemClock.uptimeMillis()) : INTERVAL_MS;
+        remainingMs = nextAt > 0 ? Math.max(0, nextAt - SystemClock.uptimeMillis()) : intervalMs();
         nextAt = 0;
         if (fade != null) {
             fade.removeAllListeners();
@@ -222,7 +233,7 @@ public class WallpaperView extends FrameLayout {
                 }
                 index = target;
                 if (bmp == null) {
-                    schedule(INTERVAL_MS);
+                    schedule(intervalMs());
                     return;
                 }
                 long fadeMs = next ? FADE_MS : FIRST_FADE_MS;
@@ -270,7 +281,7 @@ public class WallpaperView extends FrameLayout {
             @Override
             public void onAnimationEnd(Animator animation) {
                 endFade();
-                if (running) schedule(INTERVAL_MS);
+                if (running) schedule(intervalMs());
             }
         });
         fade.start();
@@ -290,7 +301,8 @@ public class WallpaperView extends FrameLayout {
                 PropertyValuesHolder.ofFloat(View.SCALE_Y, s0, s1),
                 PropertyValuesHolder.ofFloat(View.TRANSLATION_X, x0, x1),
                 PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, y0, y1));
-        a.setDuration(MOTION_MS);
+        // Each picture is on screen while fading in, for the interval, and while the next fades in over it.
+        a.setDuration(FADE_MS + intervalMs() + FADE_MS);
         a.setInterpolator(new LinearInterpolator());
         a.start();
         motion[layer] = a;
