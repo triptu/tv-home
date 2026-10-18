@@ -8,7 +8,6 @@ DIR=$(dirname "$0")
 $ADB install -r "$DIR/../../launcher/app/build/outputs/apk/debug/app-debug.apk"
 for p in $(cat "$DIR/removed.txt"); do $ADB shell pm uninstall -k --user 0 "$p" || true; done
 for p in $(cat "$DIR/disabled.txt"); do $ADB shell pm disable-user --user 0 "$p"; done
-$ADB shell pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION
 $ADB shell cmd package set-home-activity --user 0 com.gathin.tvhome/.MainActivity
 $ADB shell settings put secure screensaver_enabled 1
 $ADB shell settings put secure screensaver_components com.gathin.tvhome/.gallery.ArtDream

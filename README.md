@@ -69,17 +69,15 @@ first time; with this repo as context, people report about fifteen minutes.
 
 A home screen that is yours again:
 
-- **Pitch-black background** and a dock of your four favourite apps at the bottom, in a lighter
-  rounded band, exactly where Apple TV puts it.
-- **A top shelf** showing the focused app's name in large type, with an ambient glow in a colour
-  taken from the app's own artwork.
-- **The rest of your apps in a grid** that slides up when you press Down.
+- **Art first**: a rotating public-domain painting with a slow pan and zoom, and a short quote
+  with each one.
+- **A small dock** of your favourite apps at the bottom on a faint glass strip, plus an All apps
+  tile. The rest of your apps open in a panel over the art when you press Down or pick All apps.
 - **One floating glass highlight** that springs from tile to tile instead of each tile drawing its
-  own border. The focused tile lifts slightly and shows its name.
-- **Three frosted buttons**: Inputs (a dropdown of HDMI ports, AV and Live TV), Wi-Fi (showing the
-  network you're on) and Settings.
-- **A greeting, a large thin clock and the date**, set in
-  [Outfit](https://fonts.google.com/specimen/Outfit).
+  own border.
+- **Three round buttons**: Gallery (art mode), Inputs (a dropdown of HDMI ports, AV and Live TV)
+  and Settings.
+- **A quiet clock and the date**, set in [Outfit](https://fonts.google.com/specimen/Outfit).
 - **A matching Clock screensaver**, optional, that drifts around the screen so nothing burns in.
 
 And a TV that stops working against you: no sponsored rows, no "Discover" nags, no analytics
@@ -152,7 +150,7 @@ AndroidX RecyclerView and nothing heavier. It is built for sets with 1 GB of RAM
 video, no network, no background services.
 
 **Configure** it in [`launcher/app/src/main/res/values/config.xml`](launcher/app/src/main/res/values/config.xml):
-the dock order, apps to hide, your TV's Live TV package, and the number of columns.
+the dock order, apps to hide, your TV's Live TV package, and the number of columns in the All apps grid.
 
 **Build and install** with one command:
 
