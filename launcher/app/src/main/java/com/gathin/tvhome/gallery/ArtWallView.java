@@ -51,7 +51,7 @@ public final class ArtWallView extends FrameLayout {
     /** How much of the artwork's own colour (at wall brightness) tints the light on the wall. */
     private static final float TINT = 0.25f;
     /** The frame hangs centred in this part of the wall, leaving room for the plaque below. */
-    private static final float AREA_TOP = 0.06f, AREA_HEIGHT = 0.78f, AREA_WIDTH = 0.84f;
+    private static final float AREA_TOP = 0.05f, AREA_HEIGHT = 0.71f, AREA_WIDTH = 0.84f;
 
     private final long advanceMs;
     private final ArtPlaylist playlist;
@@ -343,6 +343,7 @@ public final class ArtWallView extends FrameLayout {
         TextView text = text(size, 300, 0xFFF1EAD2, 0f);
         text.setText(body);
         text.setGravity(Gravity.CENTER);
+        text.setBreakStrategy(android.text.Layout.BREAK_STRATEGY_BALANCED);
         text.setLineSpacing(0, 1.25f);
         text.setMaxWidth(Math.round(getWidth() * 0.62f));
         card.addView(text);
