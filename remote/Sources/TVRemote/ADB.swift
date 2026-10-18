@@ -146,6 +146,7 @@ actor ADB {
                     receipt = Receipt(.failed, "TV did not answer. Reconnect.")
                 case .shell, .launch:
                     receipt = Receipt(.failed, describe(error))
+                    snapshot = Snapshot(.reachableUnknown(describe(error)))
                     if case .probe = steps.last { _ = await probe(until: nil) }
                 default:
                     receipt = Receipt(.failed, describe(error))
