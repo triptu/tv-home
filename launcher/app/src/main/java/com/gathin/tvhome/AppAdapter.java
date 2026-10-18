@@ -77,7 +77,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     static final float FOCUS_SCALE = 1.10f;
     static final long FOCUS_MS = 150;
     /** Unfocused cards are muted so the art leads. */
-    static final float REST_ALPHA = 0.6f, REST_SATURATION = 0.25f;
+    static final float REST_ALPHA = 0.6f, REST_SATURATION = 0.25f, FOCUS_ALPHA = 0.85f;
     static final float REST_ELEVATION_DP = 3f, FOCUS_ELEVATION_DP = 12f;
     static final float CARD_RADIUS_DP = 10f;
     static final String ALL_APPS_KEY = "all-apps";
@@ -279,7 +279,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             card.setScaleY(scale);
             card.setTranslationZ((liftZ - restZ) * f);
             card.setElevation(restZ);
-            card.setAlpha(REST_ALPHA + (1f - REST_ALPHA) * f);
+            card.setAlpha(REST_ALPHA + (FOCUS_ALPHA - REST_ALPHA) * f);
             matrix.setSaturation(REST_SATURATION + (1f - REST_SATURATION) * f);
             layerPaint.setColorFilter(f >= 1f ? null : new ColorMatrixColorFilter(matrix));
             card.setLayerPaint(layerPaint);
