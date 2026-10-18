@@ -11,7 +11,6 @@ It installs on any Android TV or Google TV with Android 8 or later.
 - [Principles](#principles)
 - [Set it up on your TV](#set-it-up-on-your-tv)
 - [Credits](#credits)
-- [Licence](#licence)
 
 ## Why
 
@@ -142,9 +141,3 @@ test, Art mode, the art screensavers, the floating dock, the idle fade, the debl
   [Cormorant Garamond](https://fonts.google.com/specimen/Cormorant+Garamond), both under the SIL
   Open Font License.
 - **Quotes:** checked against [Wikiquote](https://en.wikiquote.org/).
-
-## Licence
-
-MIT, see [`LICENSE`](LICENSE). It keeps the original copyright line and adds a second one for the changes since the fork. The fonts are
-under the SIL Open Font License, see `launcher/FONT-LICENSE-OFL.txt` and
-`launcher/FONT-LICENSE-OFL-CORMORANT.txt`.
