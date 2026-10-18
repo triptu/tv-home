@@ -18,7 +18,7 @@
         android:textColor="#F7FFFFFF"
         android:textSize="22sp"
         android:fontFamily="@font/cormorant_italic"
-        android:fontVariationSettings="'wght' 500"
+        android:fontVariationSettings="'wght' 650"
         android:shadowColor="#66000000"
         android:shadowRadius="4" />
 
