@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.TvHome" parent="android:Theme.Material.NoActionBar.Fullscreen">
+        <!-- Cards and buttons draw their own focus; the system overlay showed as a grey box beside the lifted card. -->
+        <item name="android:defaultFocusHighlightEnabled">false</item>
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:colorBackground">@android:color/black</item>
         <item name="android:windowAnimationStyle">@null</item>
