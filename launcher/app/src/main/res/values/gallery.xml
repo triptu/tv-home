@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Gallery art mode (com.gathin.tvhome.gallery). The window starts in the wall's walnut so launch doesn't flash. -->
+<resources>
+    <style name="Theme.Gallery" parent="android:Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/gallery_wall</item>
+        <item name="android:colorBackground">@color/gallery_wall</item>
+    </style>
+
+    <color name="gallery_wall">#FF2C1F17</color>
+</resources>
