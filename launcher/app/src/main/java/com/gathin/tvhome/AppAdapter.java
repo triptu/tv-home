@@ -1,12 +1,16 @@
 package com.gathin.tvhome;
 
+import android.animation.ValueAnimator;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Outline;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.Settings;
@@ -70,7 +74,11 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         final List<Entry> others = new ArrayList<>();
     }
 
-    static final float FOCUS_SCALE = 1.12f;
+    static final float FOCUS_SCALE = 1.10f;
+    static final long FOCUS_MS = 150;
+    /** Unfocused cards are muted so the art leads. */
+    static final float REST_ALPHA = 0.6f, REST_SATURATION = 0.25f;
+    static final float REST_ELEVATION_DP = 3f, FOCUS_ELEVATION_DP = 12f;
     static final float CARD_RADIUS_DP = 10f;
     static final String ALL_APPS_KEY = "all-apps";
 
@@ -129,9 +137,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     @Override
     public void onBindViewHolder(@NonNull Holder h, int position) {
         Entry e = items.get(position);
-        boolean focused = h.card.isFocused();   // a rebind after a reload can hit the focused tile
-        h.card.setScaleX(focused ? FOCUS_SCALE : 1f);
-        h.card.setScaleY(focused ? FOCUS_SCALE : 1f);
+        h.snapTo(h.card.isFocused());   // a rebind after a reload can hit the focused tile
         h.card.setContentDescription(e.label);
         boolean allApps = e.component == null;
         h.card.setBackgroundResource(allApps ? R.drawable.tile_glass_bg : R.drawable.tile_bg);
@@ -201,11 +207,21 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         return -1;
     }
 
+    /**
+     * One tile. At rest it is muted (translucent, mostly grey) and sits low; focused it lifts like tvOS:
+     * full colour, larger, a deeper shadow and a white ring. One animator drives all of it, and the colour
+     * change is a paint on the card's hardware layer, so nothing is redrawn or re-decoded per frame.
+     */
     static final class Holder extends RecyclerView.ViewHolder {
         final View card;
         final ImageView banner;
         final ImageView icon;
         final TextView label;
+        private final Paint layerPaint = new Paint();
+        private final ColorMatrix matrix = new ColorMatrix();
+        private final ValueAnimator lift = ValueAnimator.ofFloat(0f, 1f);
+        private final float restZ, liftZ;
+        private float level = -1f;
 
         Holder(View v, AppAdapter adapter) {
             super(v);
@@ -214,7 +230,10 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             icon = v.findViewById(R.id.icon);
             label = v.findViewById(R.id.label);
 
-            final float radius = v.getResources().getDisplayMetrics().density * CARD_RADIUS_DP;
+            final float density = v.getResources().getDisplayMetrics().density;
+            final float radius = density * CARD_RADIUS_DP;
+            restZ = REST_ELEVATION_DP * density;
+            liftZ = FOCUS_ELEVATION_DP * density;
             card.setOutlineProvider(new ViewOutlineProvider() {
                 @Override
                 public void getOutline(View view, Outline outline) {
@@ -222,6 +241,12 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
                 }
             });
             card.setClipToOutline(true);
+            card.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            setLevel(0f);
+
+            lift.setDuration(FOCUS_MS);
+            lift.setInterpolator(new DecelerateInterpolator(1.5f));
+            lift.addUpdateListener(a -> setLevel((float) a.getAnimatedValue()));
 
             TileListener listener = adapter.listener;
             card.setOnKeyListener((view, keyCode, event) -> {
@@ -230,13 +255,34 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
                 return pos != RecyclerView.NO_POSITION && listener.onTileKey(adapter, pos, keyCode);
             });
 
-            DecelerateInterpolator ease = new DecelerateInterpolator(1.5f);
             card.setOnFocusChangeListener((view, focused) -> {
-                float s = focused ? FOCUS_SCALE : 1.0f;
-                view.animate().scaleX(s).scaleY(s).setDuration(150).setInterpolator(ease).start();
+                lift.cancel();
+                lift.setFloatValues(level, focused ? 1f : 0f);
+                lift.start();
                 int pos = getBindingAdapterPosition();
                 if (focused && pos != RecyclerView.NO_POSITION) listener.onTileFocused(adapter, pos, view);
             });
+        }
+
+        /** Jumps to the resting or focused look, e.g. when a rebind hits the focused tile. */
+        void snapTo(boolean focused) {
+            lift.cancel();
+            setLevel(focused ? 1f : 0f);
+        }
+
+        /** 0 is the muted resting card, 1 the lifted focused one. */
+        private void setLevel(float f) {
+            if (f == level) return;
+            level = f;
+            float scale = 1f + (FOCUS_SCALE - 1f) * f;
+            card.setScaleX(scale);
+            card.setScaleY(scale);
+            card.setTranslationZ((liftZ - restZ) * f);
+            card.setElevation(restZ);
+            card.setAlpha(REST_ALPHA + (1f - REST_ALPHA) * f);
+            matrix.setSaturation(REST_SATURATION + (1f - REST_SATURATION) * f);
+            layerPaint.setColorFilter(f >= 1f ? null : new ColorMatrixColorFilter(matrix));
+            card.setLayerPaint(layerPaint);
         }
     }
 }

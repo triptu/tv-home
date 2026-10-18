@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The All apps tile: frosted glass instead of an app's banner. -->
+<!-- The All apps tile: frosted dark glass, so it reads on any painting without a band behind it. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#24FFFFFF" />
-    <stroke android:width="1dp" android:color="#29FFFFFF" />
+    <solid android:color="#59000000" />
+    <stroke android:width="1dp" android:color="#26FFFFFF" />
     <corners android:radius="10dp" />
 </shape>

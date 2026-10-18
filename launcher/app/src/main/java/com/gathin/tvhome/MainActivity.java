@@ -3,7 +3,6 @@ package com.gathin.tvhome;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.KeyEvent;
@@ -14,9 +13,6 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.dynamicanimation.animation.DynamicAnimation;
-import androidx.dynamicanimation.animation.SpringAnimation;
-import androidx.dynamicanimation.animation.SpringForce;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,7 +22,7 @@ import java.util.List;
 
 /**
  * Art-first home: a rotating painting, a quiet clock, round buttons, the quote and a small dock. The
- * other apps sit in a panel that slides up over the art. One glass highlight springs between tiles.
+ * other apps sit in a panel that slides up over the art. The focused tile lifts; nothing travels between tiles.
  */
 public class MainActivity extends Activity implements AppAdapter.TileListener {
 
@@ -61,10 +57,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean gridOpen;
     private boolean stopped = true;
 
-    private GlassView glass;
-    private SpringAnimation springX, springY;
-    private float glassTargetY;
-    private boolean glassShown;
     private final DecelerateInterpolator ease = new DecelerateInterpolator(1.5f);
 
     @Override
@@ -75,7 +67,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         columns = Math.max(1, getResources().getInteger(R.integer.columns));
 
         root = findViewById(R.id.root);
-        glass = findViewById(R.id.glass);
         wallpaper = findViewById(R.id.wallpaper);
         wallpaper.bindQuote(findViewById(R.id.quote), findViewById(R.id.quoteText), findViewById(R.id.quoteAuthor));
         topButtons = findViewById(R.id.topButtons);
@@ -94,24 +85,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         grid.setItemAnimator(null);
         gridAdapter = new AppAdapter(this, this);
         grid.setAdapter(gridAdapter);
-        // Keep the glass glued to its tile while the grid scrolls.
-        grid.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
-                if (!glassShown) return;
-                glassTargetY -= dy;
-                if (springY.isRunning()) springY.animateToFinalPosition(glassTargetY);
-                else glass.setTranslationY(glassTargetY);
-            }
-        });
-
-        // Liquid feel: soft springs on the highlight's position.
-        springX = new SpringAnimation(glass, DynamicAnimation.TRANSLATION_X);
-        springY = new SpringAnimation(glass, DynamicAnimation.TRANSLATION_Y);
-        for (SpringAnimation s : new SpringAnimation[]{springX, springY}) {
-            s.setSpring(new SpringForce().setStiffness(320f).setDampingRatio(0.62f));
-        }
-
         View btnArt = findViewById(R.id.btnArt);
         View btnSettings = findViewById(R.id.btnSettings);
         // Art mode opens on the painting the home screen is showing, fresh even if an old one was left open.
@@ -146,11 +119,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             b.setOnKeyListener(buttonKeys);
             b.setOnFocusChangeListener(buttonFocus);
         }
-
-        // Hide the glass when focus leaves the tiles.
-        getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((oldF, newF) -> {
-            if (newF == null || newF.getId() != R.id.card) hideGlass();
-        });
     }
 
     @Override
@@ -168,8 +136,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onResume() {
         super.onResume();
         stopped = false;
-        glassShown = false;
-        glass.setAlpha(0f);
         wallpaper.start();
         AppAdapter.Apps apps = AppAdapter.loadApps(this);
         List<AppAdapter.Entry> dockItems = new ArrayList<>(apps.dock);
@@ -217,12 +183,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             lastDockSlot = position;
         } else {
             lastDockKey = AppAdapter.ALL_APPS_KEY;
-            View item = (View) card.getParent();
-            // Scroll just enough so the whole glass, not only the tile, is visible.
-            Rect want = new Rect(0, 0, item.getWidth(), item.getHeight());
-            grid.requestChildRectangleOnScreen(item, want, false);
         }
-        moveGlass(card);
     }
 
     @Override
@@ -297,7 +258,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     private void focusCard(AppAdapter adapter, RecyclerView.ViewHolder vh) {
         View card = vh.itemView.findViewById(R.id.card);
-        // Already focused (e.g. back from an app): no focus change fires, so restore the glass by hand.
+        // Already focused (e.g. back from an app): no focus change fires, so record it by hand.
         if (card.isFocused()) onTileFocused(adapter, vh.getBindingAdapterPosition(), card);
         else card.requestFocus();
     }
@@ -345,45 +306,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private static void setBlocked(View v, boolean blocked) {
         ((ViewGroup) v).setDescendantFocusability(
                 blocked ? ViewGroup.FOCUS_BLOCK_DESCENDANTS : ViewGroup.FOCUS_AFTER_DESCENDANTS);
-    }
-
-    // ---- glass highlight -------------------------------------------------------------------------
-
-    private void moveGlass(View card) {
-        // Tile rect in root coordinates, using layout positions (ignores the scale and panel animations).
-        Rect r = new Rect(0, 0, card.getWidth(), card.getHeight());
-        root.offsetDescendantRectToMyCoords(card, r);
-        float pad = GlassView.GLOW_DP * density;
-        float w = card.getWidth() * AppAdapter.FOCUS_SCALE + 2 * pad;
-        float h = card.getHeight() * AppAdapter.FOCUS_SCALE + 2 * pad;
-        float x = r.exactCenterX() - w / 2f;
-        float y = r.exactCenterY() - h / 2f;
-
-        ViewGroup.LayoutParams lp = glass.getLayoutParams();
-        if (lp.width != (int) w || lp.height != (int) h) {
-            lp.width = (int) w;
-            lp.height = (int) h;
-            glass.setLayoutParams(lp);
-            glass.setRadius(AppAdapter.CARD_RADIUS_DP * density * AppAdapter.FOCUS_SCALE);
-        }
-        glassTargetY = y;
-        if (!glassShown) {
-            springX.cancel();
-            springY.cancel();
-            glass.setTranslationX(x);
-            glass.setTranslationY(y);
-            glass.animate().alpha(1f).setDuration(150).start();
-            glassShown = true;
-        } else {
-            springX.animateToFinalPosition(x);
-            springY.animateToFinalPosition(y);
-        }
-    }
-
-    private void hideGlass() {
-        if (!glassShown) return;
-        glassShown = false;
-        glass.animate().alpha(0f).setDuration(150).start();
     }
 
     // ---- top buttons -----------------------------------------------------------------------------

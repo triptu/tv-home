@@ -4,6 +4,9 @@
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:colorBackground">@android:color/black</item>
         <item name="android:windowAnimationStyle">@null</item>
+        <!-- Stronger than the default so floating cards separate from light paintings. -->
+        <item name="android:ambientShadowAlpha">0.25</item>
+        <item name="android:spotShadowAlpha">0.35</item>
     </style>
 
     <!-- Round glass icon button, tvOS style: faint at rest, solid white with a dark icon when focused. -->

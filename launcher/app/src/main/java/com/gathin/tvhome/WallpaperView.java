@@ -43,7 +43,7 @@ import java.util.concurrent.Executors;
 /**
  * Picture backdrop: the landscape works in assets/art in shuffled order, each drifting in a slow Ken Burns
  * zoom and crossfading to the next, with a quote that changes with the picture and a scrim that keeps the
- * clock, the buttons and the dock legible. Images are decoded off the main thread at view size, and at most two are
+ * clock and the buttons legible. Images are decoded off the main thread at view size, and at most two are
  * in memory: the one shown and the one fading in over it.
  */
 public class WallpaperView extends FrameLayout {
@@ -60,13 +60,9 @@ public class WallpaperView extends FrameLayout {
     private static final float MIN_ASPECT = 1.3f;
     /** Longer quotes would need a fourth line. */
     private static final int MAX_QUOTE_CHARS = 140;
-    /** A light fade at the top for the buttons, clear through the middle, and a gentle one under the dock. */
-    private static final int[] SCRIM_COLORS = {
-            0x4D000000, 0x1F000000, 0x00000000,
-            0x00000000, 0x26000000, 0x59000000};
-    private static final float[] SCRIM_STOPS = {
-            0f, 0.12f, 0.24f,
-            0.70f, 0.85f, 1f};
+    /** A light fade at the top for the buttons; the rest of the picture is left alone. */
+    private static final int[] SCRIM_COLORS = {0x4D000000, 0x1F000000, 0x00000000};
+    private static final float[] SCRIM_STOPS = {0f, 0.12f, 0.24f};
     /** Extra shade behind the clock: an ellipse from the top-left corner, this share of the width and height. */
     private static final int[] CLOCK_SCRIM_COLORS = {0x73000000, 0x3D000000, 0x00000000};
     private static final float[] CLOCK_SCRIM_STOPS = {0f, 0.5f, 1f};
@@ -398,7 +394,7 @@ public class WallpaperView extends FrameLayout {
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-        canvas.drawRect(0, 0, getWidth(), getHeight(), scrim);
+        canvas.drawRect(0, 0, getWidth(), getHeight() * SCRIM_STOPS[SCRIM_STOPS.length - 1], scrim);
         canvas.drawRect(0, 0, getWidth() * CLOCK_SCRIM_W, getHeight() * CLOCK_SCRIM_H, clockScrim);
     }
 
