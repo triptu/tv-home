@@ -38,7 +38,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private static final long IDLE_MS = 8_000;
     private static final long IDLE_FADE_MS = 1_200;
     private static final long WAKE_MS = 250;
-    private static final float IDLE_ALPHA = 0.08f, IDLE_CLOCK_ALPHA = 0.5f;
+    private static final float IDLE_ALPHA = 0f, IDLE_CLOCK_ALPHA = 0.5f;
 
     // Static so they survive the activity being destroyed while another app is open (low-memory TVs,
     // or Developer options -> "Don't keep activities"); they only reset when the process dies.
