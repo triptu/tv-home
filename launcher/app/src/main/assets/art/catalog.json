@@ -1,0 +1,542 @@
+[
+  {
+    "file": "monet_water_lilies.jpg",
+    "title": "Water Lilies",
+    "artist": "Claude Monet",
+    "year": "1906",
+    "kind": "painting",
+    "width": 1150,
+    "height": 1080,
+    "credit": "Art Institute of Chicago via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "monet_garden_at_argenteuil_dahlias.jpg",
+    "title": "The Artist's Garden in Argenteuil (A Corner of the Garden with Dahlias)",
+    "artist": "Claude Monet",
+    "year": "1873",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1437,
+    "credit": "National Gallery of Art, CC0"
+  },
+  {
+    "file": "monet_beach_at_sainte_adresse.jpg",
+    "title": "The Beach at Sainte-Adresse",
+    "artist": "Claude Monet",
+    "year": "1867",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1419,
+    "credit": "Art Institute of Chicago via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "hokusai_great_wave.jpg",
+    "title": "The Great Wave off Kanagawa",
+    "artist": "Katsushika Hokusai",
+    "year": "c. 1830–32",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1291,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "seurat_sunday_on_la_grande_jatte.jpg",
+    "title": "A Sunday on La Grande Jatte — 1884",
+    "artist": "Georges Seurat",
+    "year": "1884–86",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1278,
+    "credit": "Art Institute of Chicago via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "bierstadt_rocky_mountains_landers_peak.jpg",
+    "title": "The Rocky Mountains, Lander's Peak",
+    "artist": "Albert Bierstadt",
+    "year": "1863",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1151,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "church_heart_of_the_andes.jpg",
+    "title": "Heart of the Andes",
+    "artist": "Frederic Edwin Church",
+    "year": "1859",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1057,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "turner_venice_from_the_salute.jpg",
+    "title": "Venice, from the Porch of Madonna della Salute",
+    "artist": "J. M. W. Turner",
+    "year": "c. 1835",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1432,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "kota_radha_krishna_flowering_grove.jpg",
+    "title": "Radha and Krishna Walk in a Flowering Grove",
+    "artist": "The Kota Master",
+    "year": "c. 1720",
+    "kind": "painting",
+    "width": 701,
+    "height": 1080,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "jaipur_krishna_gopis_shelter_from_rain.jpg",
+    "title": "Krishna and the Gopis Take Shelter from the Rain",
+    "artist": "Jaipur, Rajasthan",
+    "year": "1760",
+    "kind": "painting",
+    "width": 797,
+    "height": 1080,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "tehri_garhwal_krishna_gopis_yamuna.jpg",
+    "title": "Krishna and the Gopis on the Bank of the Yamuna (Gita Govinda)",
+    "artist": "Pahari, Tehri Garhwal",
+    "year": "c. 1775–80",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1253,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "tehri_garhwal_radha_pining_for_krishna.jpg",
+    "title": "Radha with Her Confidant, Pining for Krishna (Gita Govinda)",
+    "artist": "Pahari, Tehri Garhwal",
+    "year": "c. 1775–80",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1218,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "mandi_bhairavi_ragini.jpg",
+    "title": "Bhairavi Ragini, from a Ragamala (Garland of Musical Modes)",
+    "artist": "Mandi, Himachal Pradesh",
+    "year": "c. 1640–50",
+    "kind": "painting",
+    "width": 823,
+    "height": 1080,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "tibet_mandala_of_jnanadakini.jpg",
+    "title": "Mandala of Jnanadakini",
+    "artist": "Tibet",
+    "year": "late 14th century",
+    "kind": "painting",
+    "width": 914,
+    "height": 1080,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "nepal_vasudhara_mandala.jpg",
+    "title": "Vasudhara Mandala",
+    "artist": "Nepal",
+    "year": "1777",
+    "kind": "painting",
+    "width": 901,
+    "height": 1080,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "monet_poppy_field.jpg",
+    "title": "Poppy Field",
+    "artist": "Claude Monet",
+    "year": "1873",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1464,
+    "credit": "Musée d'Orsay via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "monet_impression_sunrise.jpg",
+    "title": "Impression, Sunrise",
+    "artist": "Claude Monet",
+    "year": "1872",
+    "kind": "painting",
+    "width": 1393,
+    "height": 1080,
+    "credit": "Musée Marmottan Monet via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "monet_regattas_at_argenteuil.jpg",
+    "title": "Regattas at Argenteuil",
+    "artist": "Claude Monet",
+    "year": "1872",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1237,
+    "credit": "Musée d'Orsay via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "monet_woman_with_a_parasol.jpg",
+    "title": "Woman with a Parasol – Madame Monet and Her Son",
+    "artist": "Claude Monet",
+    "year": "1875",
+    "kind": "painting",
+    "width": 871,
+    "height": 1080,
+    "credit": "National Gallery of Art, CC0"
+  },
+  {
+    "file": "van_gogh_starry_night_over_the_rhone.jpg",
+    "title": "Starry Night over the Rhône",
+    "artist": "Vincent van Gogh",
+    "year": "1888",
+    "kind": "painting",
+    "width": 1394,
+    "height": 1080,
+    "credit": "Musée d'Orsay via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "van_gogh_almond_blossom.jpg",
+    "title": "Almond Blossom",
+    "artist": "Vincent van Gogh",
+    "year": "1890",
+    "kind": "painting",
+    "width": 1367,
+    "height": 1080,
+    "credit": "Van Gogh Museum via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "van_gogh_irises.jpg",
+    "title": "Irises",
+    "artist": "Vincent van Gogh",
+    "year": "1889",
+    "kind": "painting",
+    "width": 1398,
+    "height": 1080,
+    "credit": "J. Paul Getty Museum via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "van_gogh_sunflowers.jpg",
+    "title": "Sunflowers",
+    "artist": "Vincent van Gogh",
+    "year": "1888",
+    "kind": "painting",
+    "width": 849,
+    "height": 1080,
+    "credit": "National Gallery, London via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "van_gogh_wheatfield_under_thunderclouds.jpg",
+    "title": "Wheatfield under Thunderclouds",
+    "artist": "Vincent van Gogh",
+    "year": "1890",
+    "kind": "painting",
+    "width": 1920,
+    "height": 948,
+    "credit": "Van Gogh Museum via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "hokusai_red_fuji.jpg",
+    "title": "Fine Wind, Clear Morning (Red Fuji)",
+    "artist": "Katsushika Hokusai",
+    "year": "c. 1830–32",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1296,
+    "credit": "Wikimedia Commons, public domain"
+  },
+  {
+    "file": "hiroshige_sudden_shower_over_shin_ohashi.jpg",
+    "title": "Sudden Shower over Shin-Ōhashi Bridge and Atake",
+    "artist": "Utagawa Hiroshige",
+    "year": "1857",
+    "kind": "painting",
+    "width": 710,
+    "height": 1080,
+    "credit": "The Metropolitan Museum of Art, CC0"
+  },
+  {
+    "file": "klimt_the_kiss.jpg",
+    "title": "The Kiss",
+    "artist": "Gustav Klimt",
+    "year": "1907–08",
+    "kind": "painting",
+    "width": 1076,
+    "height": 1080,
+    "credit": "Belvedere, Vienna via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "klimt_farm_garden_with_sunflowers.jpg",
+    "title": "Farm Garden with Sunflowers",
+    "artist": "Gustav Klimt",
+    "year": "1907",
+    "kind": "painting",
+    "width": 1066,
+    "height": 1080,
+    "credit": "Belvedere, Vienna via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "renoir_luncheon_of_the_boating_party.jpg",
+    "title": "Luncheon of the Boating Party",
+    "artist": "Pierre-Auguste Renoir",
+    "year": "1880–81",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1422,
+    "credit": "The Phillips Collection via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "cezanne_mont_sainte_victoire.jpg",
+    "title": "Mont Sainte-Victoire",
+    "artist": "Paul Cézanne",
+    "year": "c. 1887",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1390,
+    "credit": "The Courtauld via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "bierstadt_among_the_sierra_nevada.jpg",
+    "title": "Among the Sierra Nevada, California",
+    "artist": "Albert Bierstadt",
+    "year": "1868",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1148,
+    "credit": "Smithsonian American Art Museum via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "church_twilight_in_the_wilderness.jpg",
+    "title": "Twilight in the Wilderness",
+    "artist": "Frederic Edwin Church",
+    "year": "1860",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1196,
+    "credit": "Cleveland Museum of Art via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "friedrich_wanderer_above_the_sea_of_fog.jpg",
+    "title": "Wanderer above the Sea of Fog",
+    "artist": "Caspar David Friedrich",
+    "year": "c. 1817",
+    "kind": "painting",
+    "width": 842,
+    "height": 1080,
+    "credit": "Hamburger Kunsthalle via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "friedrich_morning_in_the_riesengebirge.jpg",
+    "title": "Morning in the Riesengebirge",
+    "artist": "Caspar David Friedrich",
+    "year": "1810–11",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1204,
+    "credit": "Alte Nationalgalerie, Berlin via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "turner_fighting_temeraire.jpg",
+    "title": "The Fighting Temeraire",
+    "artist": "J. M. W. Turner",
+    "year": "1839",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1426,
+    "credit": "National Gallery, London via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "vermeer_the_milkmaid.jpg",
+    "title": "The Milkmaid",
+    "artist": "Johannes Vermeer",
+    "year": "c. 1658",
+    "kind": "painting",
+    "width": 963,
+    "height": 1080,
+    "credit": "Rijksmuseum via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "leonardo_vitruvian_man.jpg",
+    "title": "Vitruvian Man",
+    "artist": "Leonardo da Vinci",
+    "year": "c. 1490",
+    "kind": "painting",
+    "width": 794,
+    "height": 1080,
+    "credit": "Gallerie dell'Accademia via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "aivazovsky_the_ninth_wave.jpg",
+    "title": "The Ninth Wave",
+    "artist": "Ivan Aivazovsky",
+    "year": "1850",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1290,
+    "credit": "State Russian Museum via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "af_klint_ten_largest_no3_youth.jpg",
+    "title": "The Ten Largest, No. 3, Youth",
+    "artist": "Hilma af Klint",
+    "year": "1907",
+    "kind": "painting",
+    "width": 810,
+    "height": 1080,
+    "credit": "Wikimedia Commons, public domain"
+  },
+  {
+    "file": "af_klint_the_swan_no17.jpg",
+    "title": "The Swan, No. 17",
+    "artist": "Hilma af Klint",
+    "year": "1915",
+    "kind": "painting",
+    "width": 1088,
+    "height": 1080,
+    "credit": "Wikimedia Commons, public domain"
+  },
+  {
+    "file": "homer_breezing_up.jpg",
+    "title": "Breezing Up (A Fair Wind)",
+    "artist": "Winslow Homer",
+    "year": "1873–76",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1206,
+    "credit": "National Gallery of Art via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "zain_al_din_indian_roller_on_sandalwood.jpg",
+    "title": "Indian Roller on a Sandalwood Branch (Impey Album)",
+    "artist": "Shaikh Zain al-Din",
+    "year": "c. 1780",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1381,
+    "credit": "Wikimedia Commons, public domain"
+  },
+  {
+    "file": "zain_al_din_black_headed_oriole.jpg",
+    "title": "Black-headed Oriole (Impey Album)",
+    "artist": "Shaikh Zain al-Din",
+    "year": "c. 1778",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1389,
+    "credit": "Wikimedia Commons, public domain"
+  },
+  {
+    "file": "ravi_varma_there_comes_papa.jpg",
+    "title": "There Comes Papa",
+    "artist": "Raja Ravi Varma",
+    "year": "1893",
+    "kind": "painting",
+    "width": 690,
+    "height": 1080,
+    "credit": "Wikimedia Commons, public domain"
+  },
+  {
+    "file": "ravi_varma_shakuntala_writing_a_letter.jpg",
+    "title": "Shakuntala Writing a Letter to Dushyanta",
+    "artist": "Raja Ravi Varma",
+    "year": "c. 1876",
+    "kind": "painting",
+    "width": 1920,
+    "height": 1381,
+    "credit": "Wikimedia Commons, public domain"
+  },
+  {
+    "file": "sorolla_sewing_the_sail.jpg",
+    "title": "Sewing the Sail",
+    "artist": "Joaquín Sorolla",
+    "year": "1896",
+    "kind": "painting",
+    "width": 1651,
+    "height": 1200,
+    "credit": "Ca' Pesaro, Venice via Wikimedia Commons, public domain"
+  },
+  {
+    "file": "zain_al_din_crepe_ginger.jpg",
+    "title": "Crepe Ginger Plant (Impey Album)",
+    "artist": "Shaikh Zain al-Din",
+    "year": "c. 1780",
+    "kind": "painting",
+    "width": 1874,
+    "height": 1405,
+    "credit": "Wikimedia Commons, public domain"
+  },
+  {
+    "file": "webb_cosmic_cliffs_carina.jpg",
+    "title": "Cosmic Cliffs in the Carina Nebula",
+    "artist": "James Webb Space Telescope",
+    "year": "2022",
+    "kind": "space",
+    "width": 1920,
+    "height": 1111,
+    "credit": "NASA, ESA, CSA, STScI, public domain"
+  },
+  {
+    "file": "apollo_17_blue_marble.jpg",
+    "title": "The Blue Marble",
+    "artist": "Apollo 17 crew",
+    "year": "1972",
+    "kind": "space",
+    "width": 1080,
+    "height": 1080,
+    "credit": "NASA, public domain"
+  },
+  {
+    "file": "hubble_westerlund_2.jpg",
+    "title": "Celestial Fireworks: Westerlund 2",
+    "artist": "Hubble Space Telescope",
+    "year": "2015",
+    "kind": "space",
+    "width": 1600,
+    "height": 1200,
+    "credit": "NASA, ESA, Hubble Heritage Team, public domain"
+  },
+  {
+    "file": "hubble_mystic_mountain_carina.jpg",
+    "title": "Mystic Mountain, Carina Nebula",
+    "artist": "Hubble Space Telescope",
+    "year": "2010",
+    "kind": "space",
+    "width": 1920,
+    "height": 1304,
+    "credit": "NASA, ESA, M. Livio and the Hubble 20th Anniversary Team, public domain"
+  },
+  {
+    "file": "hubble_heart_of_the_lagoon_nebula.jpg",
+    "title": "Heart of the Lagoon Nebula",
+    "artist": "Hubble Space Telescope",
+    "year": "2010",
+    "kind": "space",
+    "width": 1920,
+    "height": 981,
+    "credit": "NASA, ESA, public domain"
+  },
+  {
+    "file": "hubble_twin_jet_nebula.jpg",
+    "title": "The Twin Jet Nebula",
+    "artist": "Hubble Space Telescope",
+    "year": "2015",
+    "kind": "space",
+    "width": 1280,
+    "height": 1070,
+    "credit": "NASA, ESA, public domain"
+  },
+  {
+    "file": "apollo_8_earthrise.jpg",
+    "title": "Earthrise",
+    "artist": "William Anders, Apollo 8",
+    "year": "1968",
+    "kind": "space",
+    "width": 1920,
+    "height": 1080,
+    "credit": "NASA, public domain"
+  }
+]
