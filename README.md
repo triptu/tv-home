@@ -1,257 +1,236 @@
-# tv-vibehack
+# tv-home
 
-**Your TV, minus the ads.**
+A minimal home screen for Android TV and Google TV that shows a painting until you want to watch something.
 
-Strip the bloatware from any Android TV or Google TV over Wi-Fi, and replace the ad-filled home
-screen with a clean launcher that looks like an Apple TV. No root, no cable, nothing uninstalled,
-and a one-line restore if you change your mind.
+![The home screen: Hokusai's Red Fuji with the clock, a quote by Dieter Rams and a dock of three apps](docs/home-red-fuji.jpg)
 
-![Before: stock Google TV home with a sponsored ad. After: the tv-vibehack launcher](docs/stock-vs-new-side.jpg)
+I built it for my own TV, a TCL Google TV on Android 14 with 1 GB of RAM. It installs on any
+Android TV or Google TV with Android 8 or later, but I have only tested it on mine. This README
+covers how to set it up on yours.
 
-It started as an afternoon fixing my parents' Mi TV, which showed them an advert before they
-could reach Netflix. The whole thing was done with Claude Code talking to the real TV, and the
-prompt that did it is in this repo so you can do the same with yours.
-
----
-
-## Table of contents
-
-- [How it works](#how-it-works)
-- [Quick start](#quick-start)
+- [Why](#why)
 - [What you get](#what-you-get)
-- [Supported TVs](#supported-tvs)
-- [Doing it by hand](#doing-it-by-hand)
-- [The launcher](#the-launcher)
-- [Troubleshooting](#troubleshooting)
-- [Questions people ask](#questions-people-ask)
-- [Contributing](#contributing)
+- [Principles](#principles)
+- [Use it on your TV](#use-it-on-your-tv)
+- [Credits](#credits)
 - [Licence](#licence)
 
----
+## Why
 
-## How it works
+<img src="docs/stock-google-tv.jpg" width="200" align="right" alt="The stock Google TV home: a Prime Video ad, Top picks for you and an app row">
 
-Android TVs have the same debug bridge as Android phones. Once you switch on USB debugging in the
-TV's developer options, the TV listens on your Wi-Fi and asks you once to allow your computer.
-After that, everything is standard Android tooling:
+The stock Google TV home screen is mostly ads and rows of recommendations. On a 1 GB TV it is also
+slow.
 
-1. **Back up** the list of installed packages and settings.
-2. **Disable** the manufacturer's telemetry, ad services, content rows and preloaded junk with
-   `pm disable-user`. Nothing is uninstalled, so a restore script can undo every step.
-3. **Install** a small native launcher and make it the default home screen.
+This home screen shows one painting at a time, a clock and a quote, plus the few apps you
+actually open. It uses less memory than the stock one, and you decide everything on it.
 
-The bloat differs by brand, which is why the prompt asks your coding assistant to discover it
-on your TV and ask you before touching anything you might use.
+The picture on the right is the stock home on the same TV, dimmed behind a system dialog.
 
-## Quick start
-
-You need a computer on the same Wi-Fi as the TV and a coding assistant with shell access
-(Claude Code, or anything similar).
-
-**1. On the TV**
-Settings → Device Preferences → About → press OK on **Build** seven times → go back →
-Developer options → turn on **USB debugging**. Some TVs also show a Network or ADB debugging
-toggle; turn it on too. Keep the TV switched on.
-
-**2. On your computer**
-Open your assistant, paste the prompt from [`PROMPT.md`](PROMPT.md), and fill in your TV model.
-
-**3. Follow along**
-Accept the "Allow USB debugging?" prompt when it appears on the TV, then answer the checklist
-questions: which streaming apps you use, which four go in the dock, whether to keep the voice
-assistant, Chromecast and firmware updates.
-
-That's it. The assistant backs up, debloats, builds and installs the launcher, and checks every
-step with screenshots pulled from the TV. On a 1 GB Mi TV the whole thing took one afternoon the
-first time; with this repo as context, people report about fifteen minutes.
+<br clear="right">
 
 ## What you get
 
-A home screen that is yours again:
+### Home
 
-- **Art first**: a rotating public-domain painting with a slow pan and zoom, and a short quote
-  with each one under the clock. After a few idle seconds everything else fades back.
-- **A small dock** of your favourite apps floating on the art, muted until focused, plus an All
-  apps tile. The rest of your apps open in a panel over the art when you press Down or pick All apps.
-- **tvOS-style focus**: the focused card lifts into full colour with a white ring.
-- **Two round buttons**: Art mode (framed paintings on a gallery wall, starting with the one on
-  screen) and Settings.
-- **A quiet clock and the date**, set in [Outfit](https://fonts.google.com/specimen/Outfit), and the
-  quote in [Cormorant Garamond](https://fonts.google.com/specimen/Cormorant+Garamond) italic.
-- **A matching Clock screensaver**, optional, that drifts around the screen so nothing burns in.
+A public-domain painting fills the screen and changes every 45 seconds, with a slow pan and zoom.
+A small clock and the date sit top left, with a quote under them. Two round buttons top right open
+Art mode and Settings. A small dock floats at the bottom with your apps and an All apps tile.
+Cards are muted until you focus one, then it lifts.
 
-And a TV that stops working against you: no sponsored rows, no "Discover" nags, no analytics
-phoning home, no apps you never asked for.
+The quote's ink changes with each painting: dark ink on light paper, white ink on dark or busy
+paintings, with just enough shade behind it to stay readable.
 
-## Supported TVs
+<img src="docs/home-crepe-ginger.jpg" width="49%" alt="Home on a light botanical painting by Shaikh Zain al-Din, with dark ink"> <img src="docs/home-boating-party.jpg" width="49%" alt="Home on Renoir's Luncheon of the Boating Party, with white ink">
+<img src="docs/home-ninth-wave.jpg" width="49%" alt="Home on Aivazovsky's The Ninth Wave">
 
-Anything running **Android TV** or **Google TV**: Xiaomi and Redmi, TCL, Hisense, Sony, OnePlus,
-Realme, Nvidia Shield and most others.
+### Idle
 
-Not supported: Samsung (Tizen), LG (webOS) and Amazon Fire TV. They run different systems or
-won't let a third-party launcher take over Home.
+After 8 seconds without a key press, the dock and buttons fade out. The painting, a dim clock and
+the quote stay. The first key press only wakes the screen, so you never open an app by accident.
 
-Lists that people have tested and contributed live in [`examples/`](examples/):
+![Idle home on Webb's Cosmic Cliffs: dim clock and the quote, no dock](docs/idle-cosmic-cliffs.jpg)
 
-| TV | OS |
+### Art mode
+
+The palette button opens a gallery: one painting at a time in a frame with an ivory mat, on a
+walnut wall, with a museum-style plaque. Left and right on the remote move between paintings. It
+opens on the painting that was on the home screen. It also shows up as Gallery in the TV's own app list.
+
+<img src="docs/art-mode-monet.jpg" width="49%" alt="Art mode: Monet's The Beach at Sainte-Adresse, framed, with a plaque"> <img src="docs/art-mode-krishna.jpg" width="49%" alt="Art mode: Krishna and the Gopis, a Jaipur miniature, framed, with a plaque">
+
+### Screensaver
+
+The default screensaver is the home screen with nothing else on it: the painting and the quote,
+with the painting's title, artist and year bottom left. The framed Gallery is also available as a
+screensaver, and so is a plain drifting clock.
+
+<img src="docs/screensaver-oriole.jpg" width="49%" alt="Screensaver: Black-headed Oriole by Shaikh Zain al-Din, with a quote and caption"> <img src="docs/screensaver-temeraire.jpg" width="49%" alt="Screensaver: Turner's The Fighting Temeraire, with a quote and caption">
+
+### All apps
+
+The last tile in the dock opens every installed app in a grid over the dimmed painting.
+
+![All apps grid over a dimmed painting](docs/all-apps.jpg)
+
+This screenshot is from a slightly older build, which still showed the quote in a box.
+
+### The art
+
+54 pictures: Monet, Van Gogh, Hokusai, Klimt, Turner, Indian miniatures, Himalayan mandalas, and
+NASA, Hubble and Webb images. The 31 landscape ones rotate on the home screen. Art mode and the
+Gallery screensaver show all of them.
+
+![Contact sheet of all 54 pictures](docs/art-collection.jpg)
+
+### Debloat
+
+[`device/tcl-g13/`](device/tcl-g13/) holds what I removed from my TV and the scripts that do it:
+
+| File | What it does |
 |---|---|
-| Xiaomi Mi TV 4A (MiTV-MOOQ1) | Android TV 10 |
-| Xiaomi MiTV-AXSO0 | Android TV 9 |
-| TCL 55" 4K Google TV, 2023 (G10) | Google TV 12 |
-| SANYO ATV R2 | Android TV 9 |
-| OnePlus TV (D00) | Google TV 14 |
+| `removed.txt` | Apps uninstalled for the main user (preloaded streaming apps, demos, TCL extras). They stay on the system partition. |
+| `disabled.txt` | Packages disabled: the Google TV launcher, ads, ambient mode and telemetry services. |
+| `setup.sh` | Installs the launcher, applies both lists, sets it as the home screen and sets the screensaver and idle timeouts. |
+| `restore.sh` | Puts every removed and disabled package back. |
 
-Your TV not here? The prompt works regardless, it discovers the bloat itself. If you add your
-list afterwards, the next person with your model skips that step. See
-[Contributing](#contributing).
+On my TV, this home screen uses about 46 to 65 MB of memory (PSS). Google TV's own launcher and the
+services around it used about 146 MB.
 
-## Doing it by hand
+## Principles
 
-Everything the assistant does, you can run yourself. The tools need Python 3 and nothing else.
+- **The art comes first.** The screen is a painting with a few small things on it, never the other way round.
+- **Only what you use.** Three apps in the dock, everything else one press away in All apps.
+- **Nothing that tracks or recommends.** No network access, no accounts, no content rows. The launcher only lists installed apps and opens them.
+- **Readable on every painting.** The text colour and shade are measured per painting (`InkRule.java`) so text reaches a WCAG contrast of 4.5:1. A unit test checks this on every home picture.
+- **Small and fast on cheap hardware.** Plain Java with RecyclerView, no blur, no video, no background services.
+- **Everything reversible.** Nothing is flashed or rooted. Each change in `device/` has a restore.
 
-```bash
-python3 -m venv tools/venv && tools/venv/bin/pip install -r tools/requirements.txt
-export TV_HOST=192.168.1.50                                   # your TV's IP address
+## Use it on your TV
 
-tools/venv/bin/python -I tools/tv.py --probe                 # model, Android version, firmware
-tools/venv/bin/python -I tools/tv.py 'pm list packages'      # run one shell command on the TV
-printf 'cmd1\ncmd2\n' | tools/venv/bin/python -I tools/tv.py --batch   # several, one connection
+### What you need
 
-tools/disable.sh examples/xiaomi-mi-tv-4a/debloat.txt        # apply a debloat list
-tools/restore.sh examples/xiaomi-mi-tv-4a/debloat.txt        # undo it and restore the stock launcher
-```
+- On the TV: Settings → System → About → press OK on **Android TV OS build** seven times to turn
+  on Developer options (on some TVs it is under Device Preferences → About → Build). Then in
+  Developer options, turn on **USB debugging**, and **Wireless debugging** if the TV has it.
+- On your computer: `adb` (Android platform-tools), JDK 17 and the Android SDK with platform 34.
+  On macOS: `brew install openjdk@17`, `brew install --cask android-platform-tools android-commandlinetools`,
+  then `sdkmanager "platforms;android-34" "build-tools;34.0.0"`.
 
-| Tool | What it does |
-|---|---|
-| [`tools/tv.py`](tools/tv.py) | A pure-Python ADB client: shell, batch, push, pull. Works where the stock `adb` binary is blocked. |
-| [`tools/b64push.py`](tools/b64push.py) | Uploads larger files such as APKs as base64 chunks and verifies the checksum. |
-| [`tools/disable.sh`](tools/disable.sh) / [`tools/restore.sh`](tools/restore.sh) | Apply or undo a debloat list. PowerShell versions sit next to them. |
-
-### Windows
-
-The PowerShell scripts work without WSL or Git Bash. With Android Studio installed nothing else
-is needed: the install script uses Android Studio's bundled JDK and the default SDK location.
-
-```powershell
-python -m venv tools\venv; tools\venv\Scripts\python.exe -m pip install -r tools\requirements.txt
-powershell -ExecutionPolicy Bypass -File launcher\build-and-install.ps1 -TvHost 192.168.1.50
-powershell -ExecutionPolicy Bypass -File tools\disable.ps1 -TvHost 192.168.1.50 examples\xiaomi-mi-tv-4a\debloat.txt
-powershell -ExecutionPolicy Bypass -File tools\restore.ps1 -TvHost 192.168.1.50 examples\xiaomi-mi-tv-4a\debloat.txt
-```
-
-The install script stops before touching the stock launcher if the install or the home-screen
-switch fails. Git Bash also works; the `.sh` scripts detect a Windows venv and disable MSYS path
-rewriting themselves.
-
-## The launcher
-
-A small native Android TV app (`com.gathin.tvhome`, about 1.6 MB), written in plain Java with
-AndroidX RecyclerView and nothing heavier. It is built for sets with 1 GB of RAM: no blur, no
-video, no network, no background services.
-
-**Configure** it in [`launcher/app/src/main/res/values/config.xml`](launcher/app/src/main/res/values/config.xml):
-the dock order, apps to hide, and the number of columns in the All apps grid.
-
-**Build and install** with one command:
+Connect to the TV. With Wireless debugging, the TV shows an IP, a port and a pairing code:
 
 ```bash
-TV_HOST=192.168.1.50 launcher/build-and-install.sh
+adb pair 192.168.1.30:37115      # the pairing port and code from the TV's pairing screen
+adb connect 192.168.1.30:5555    # or the port shown under Wireless debugging
 ```
 
-It needs JDK 17 and the Android SDK (platform 34, build-tools 34.0.0). On macOS:
+TVs without Wireless debugging listen on port 5555 once USB debugging is on. Accept the "Allow
+debugging?" prompt on the TV.
+
+### Pick your apps
+
+Edit [`launcher/app/src/main/res/values/config.xml`](launcher/app/src/main/res/values/config.xml).
+`dock_apps` lists the package names for the dock, in order. `hidden_apps` lists apps to leave out
+of All apps. To find package names:
 
 ```bash
-brew install openjdk@17 android-commandlinetools
-sdkmanager "platforms;android-34" "build-tools;34.0.0"
+adb shell pm list packages -3     # apps you installed
 ```
 
-Without Homebrew, the script also finds a JDK 17 known to `/usr/libexec/java_home` and an SDK in
-`~/Library/Android/sdk`, Android Studio's default. A release build (`./gradlew assembleRelease`)
-is smaller and faster on 1 GB sets; sign it yourself before installing.
-
-**Navigation** is deliberate: Up and Down move exactly one row, Up from the dock goes to the top
-buttons, the ends of the button row don't fall through to tiles, and the last focused app is
-remembered when you come back, even after the app list changes.
-
-<details>
-<summary><strong>Optional: the Clock screensaver</strong></summary>
-
-A large thin clock and the date over an ambient glow, in the launcher's style. Every minute the
-clock drifts to a new spot and the glow shifts colour. The system runs it only while the TV is
-idle. Turn it on over ADB, or pick "Clock" in the TV's screensaver settings:
+### Build
 
 ```bash
-tools/venv/bin/python -I tools/tv.py 'settings put secure screensaver_components com.gathin.tvhome/.ClockDream; settings put secure screensaver_enabled 1'
+cd launcher
+./gradlew assembleDebug           # writes app/build/outputs/apk/debug/app-debug.apk
+./gradlew testDebugUnitTest       # the ink contrast test over every home picture
 ```
 
-It starts after the TV's "screen off" idle time (`settings get system screen_off_timeout`).
-</details>
+If Gradle can't find the SDK, set `ANDROID_HOME` or write `sdk.dir=/path/to/sdk` into
+`launcher/local.properties`.
 
-## Troubleshooting
+### Install and set up
 
-Things that bit us or contributors, so they don't bite you.
+On a TCL Google TV like mine, one script does all of it:
 
-**Connecting**
+```bash
+device/tcl-g13/setup.sh 192.168.1.30:5555
+```
 
-- **macOS: `adb connect` says "No route to host"** although the port is open. Recent macOS treats
-  the Google-signed `adb` as its own app under Local Network privacy and silently blocks it.
-  `tools/tv.py` avoids the binary entirely.
-- **No "wireless debugging" toggle** on some TVs, Xiaomi among them. USB debugging alone opens
-  network ADB on port 5555.
-- **Windows PowerShell 5.1 adds a byte-order mark** to text piped into a program, which turned the
-  first batch command into gibberish. `tv.py` now strips it, and the `.ps1` scripts pipe clean UTF-8.
-- **Git Bash rewrites paths** like `/data/local/tmp` into Windows paths. The scripts set
-  `MSYS_NO_PATHCONV=1` for you. Set `JAVA_HOME` and `ANDROID_HOME` before building there.
+For another TV, copy the folder and edit the lists:
 
-**Working on the TV**
+```bash
+cp -r device/tcl-g13 device/my-tv
+adb shell pm list packages        # everything installed
+adb shell pm list packages -s     # system packages only
+adb shell dumpsys package <name>  # what a package does: its activities and services
+```
 
-- **Chained `pm` commands** (`pm disable a; pm disable b`) may silently stop after the first. Run
-  one per shell call; `--batch` does exactly that.
-- **Large pushes hang** through the Python client. Use `tools/b64push.py` for APKs.
-- **Screenshots come out empty** while Live TV or an HDMI input is on screen, seen on TCL. Press
-  Home before `screencap`.
-- **Disable the stock launcher only after the new one is installed**, or the Home button lands on
-  a factory test app.
-- **No on-screen keyboard** after switching launchers, seen on Xiaomi: the default input method
-  pointed at a Baidu keyboard that isn't installed. Fix:
-  `tools/tv.py 'ime set com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME'`
-- **Third-party launchers** often charge for basics like a custom wallpaper. That's why this repo
-  has its own.
+Put packages to uninstall in `removed.txt` and packages to disable in `disabled.txt`. Leave the
+Play Store, Play Services, the keyboard, the remote and Bluetooth services, and the TV's input and
+tuner apps alone. [`examples/`](examples/) has debloat lists other people made for Xiaomi, TCL,
+Sanyo and OnePlus TVs, which help you tell what is safe. Then run `device/my-tv/setup.sh <ip:port>`.
 
-## Questions people ask
+To undo everything, run `device/my-tv/restore.sh <serial>`. Apps removed with
+`pm uninstall --user 0` stay on the system partition, so `cmd package install-existing` brings them
+back. If the scripts are gone, a factory reset also restores every app.
 
-**Is this safe? Can it brick the TV?**
-No. Nothing is flashed, rooted or deleted. Packages are disabled for the user profile, which
-lives in the data partition, not in the system image. The firmware is untouched. If something
-goes wrong, `tools/restore.sh` puts everything back, and even without the tools you can re-enable
-apps from the TV's own settings.
+Two things that matter on Google TV:
 
-**What about firmware updates?**
-Most lists disable the manufacturer's update service, so updates only arrive when you re-enable
-it on purpose. If an update does land, the worst case is that a package comes back enabled and
-you re-run the script.
+- **Play Protect blocks old apps.** Google TV blocks sideloaded apps that target an old Android
+  version. The launcher targets SDK 34 for this reason. Keep it there or higher.
+- **Google TV takes Home back.** Setting this launcher as the home app is not enough on its own.
+  The Google TV launcher (`com.google.android.apps.tv.launcherx`) and its setup wizard
+  (`com.google.android.tungsten.setupwraith`) must be disabled, or the Home button returns to
+  Google TV. Both are in `device/tcl-g13/disabled.txt`.
 
-**Won't the apps break as their APIs change?**
-The streaming apps still update through the Play Store, which is left alone. The launcher
-doesn't talk to them; it lists what's installed and launches it, using Android launcher intents
-that have been stable for over a decade.
+To pick a screensaver by hand:
 
-**How did it get access? Isn't that a security hole?**
-Through the Android Debug Bridge, with one explicit "allow this computer" tap on the TV, the same
-as developing an Android app. The TV only trusts the key you approved. You can switch USB
-debugging off again afterwards and the launcher keeps working.
+```bash
+adb shell settings put secure screensaver_components com.gathin.tvhome/.ArtDream          # home painting and quote
+adb shell settings put secure screensaver_components com.gathin.tvhome/.gallery.ArtDream  # framed gallery
+adb shell settings put secure screensaver_components com.gathin.tvhome/.ClockDream        # drifting clock
+```
 
-**Can I just download the launcher APK?**
-Build it yourself with the one-line script above; it takes about a minute and you control what
-goes on your TV. We don't publish prebuilt binaries.
+### Add your own art
 
-## Contributing
+1. Put a JPEG in [`launcher/app/src/main/assets/art/`](launcher/app/src/main/assets/art/). The
+   others are about 1920 pixels on the long side.
+2. Add an entry to [`catalog.json`](launcher/app/src/main/assets/art/catalog.json) with `file`,
+   `title`, `artist`, `year`, `kind` (`painting` or `space`), `width`, `height` and `credit`.
+   Pictures at least 1.3 times wider than tall also appear on the home screen.
+3. Run `./gradlew testDebugUnitTest`. The test prints the ink picked for each picture and fails if
+   any text on it falls below 4.5:1. Add `-PinkSheet=/tmp/ink.png` to get a contact sheet of every
+   home screen to look over.
 
-The most useful contribution is your TV's debloat list, so the next person with that model
-doesn't have to rediscover it. Launcher improvements and sharper prompt wording are welcome too.
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the format and the testing we ask for.
+### Add quotes
+
+Quotes live in [`launcher/app/src/main/assets/quotes.json`](launcher/app/src/main/assets/quotes.json),
+one `{"text": ..., "author": ...}` per quote. Keep them short. Long quotes wrap to more lines and
+cover more of the painting.
+
+## Credits
+
+This started as a fork of [tv-vibehack](https://github.com/Gathin23/tv-vibehack) by Gathin23 (MIT),
+which debloats Android TVs and replaces the home screen with an Apple TV style launcher. From it I
+kept the launcher's base: the plain Java app, its package name `com.gathin.tvhome`, the All apps
+grid, D-pad navigation, the Clock screensaver and the Outfit font. The debloat lists in
+`examples/` and the idea of an AI assistant doing the debloat ([`PROMPT.md`](PROMPT.md)) also come
+from there.
+
+I have since rebuilt it around the art: the rotating paintings and quotes, the adaptive ink and its
+test, Art mode, the art screensavers, the floating dock, the idle fade, the TCL G13 setup in
+`device/`, and the move to target SDK 34.
+
+- **Art:** public domain or CC0, from The Metropolitan Museum of Art, the National Gallery of Art,
+  the Art Institute of Chicago, Wikimedia Commons (PD-Art) and other museums, and NASA. Each
+  picture's source is in `catalog.json`.
+- **Fonts:** [Outfit](https://fonts.google.com/specimen/Outfit) and
+  [Cormorant Garamond](https://fonts.google.com/specimen/Cormorant+Garamond), both under the SIL
+  Open Font License.
+- **Quotes:** checked against [Wikiquote](https://en.wikiquote.org/).
 
 ## Licence
 
-MIT, see [`LICENSE`](LICENSE). The Outfit and Cormorant Garamond typefaces are under the SIL Open Font
-License, see `launcher/FONT-LICENSE-OFL.txt` and `launcher/FONT-LICENSE-OFL-CORMORANT.txt`.
+MIT, see [`LICENSE`](LICENSE). It keeps the original copyright line and adds mine. The fonts are
+under the SIL Open Font License, see `launcher/FONT-LICENSE-OFL.txt` and
+`launcher/FONT-LICENSE-OFL-CORMORANT.txt`.
