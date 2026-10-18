@@ -1,6 +1,7 @@
 MIT License
 
 Copyright (c) 2026 Gathin
+Copyright (c) 2026 Tushar Tripathi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,3 +26,10 @@ SOFTWARE.
 The Outfit typeface in launcher/app/src/main/res/font/outfit.ttf is copyright
 The Outfit Project Authors and licensed under the SIL Open Font License 1.1,
 see launcher/FONT-LICENSE-OFL.txt.
+
+The Cormorant Garamond typeface in launcher/app/src/main/res/font/cormorant_italic.ttf is
+copyright the Cormorant Project Authors and licensed under the SIL Open Font License 1.1,
+see launcher/FONT-LICENSE-OFL-CORMORANT.txt.
+
+The pictures in launcher/app/src/main/assets/art are public domain or CC0. Each one's source is
+in launcher/app/src/main/assets/art/catalog.json.
