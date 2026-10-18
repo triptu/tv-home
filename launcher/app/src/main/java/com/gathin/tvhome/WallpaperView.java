@@ -8,7 +8,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.RadialGradient;
 import android.graphics.Shader;
 import android.os.Handler;
 import android.os.Looper;
@@ -41,7 +43,7 @@ import java.util.concurrent.Executors;
 /**
  * Picture backdrop: the landscape works in assets/art in shuffled order, each drifting in a slow Ken Burns
  * zoom and crossfading to the next, with a quote that changes with the picture and a scrim that keeps the
- * top bar and the dock legible. Images are decoded off the main thread at view size, and at most two are
+ * clock, the quote and the dock legible. Images are decoded off the main thread at view size, and at most two are
  * in memory: the one shown and the one fading in over it.
  */
 public class WallpaperView extends FrameLayout {
@@ -56,18 +58,22 @@ public class WallpaperView extends FrameLayout {
     /** Pan per axis as a fraction of the view, inside the (ZOOM - 1) / 2 margin the zoom leaves. */
     private static final float PAN = 0.03f;
     private static final float MIN_ASPECT = 1.3f;
-    /** Longer quotes would need a fourth line. */
-    private static final int MAX_QUOTE_CHARS = 140;
-    /** Darker behind the clock and greeting at the top and the app name and dock at the bottom. */
+    /** Longer quotes would need a third line. */
+    private static final int MAX_QUOTE_CHARS = 120;
+    /**
+     * A light fade at the top for the buttons, clear through the middle, and a deeper fade over the
+     * bottom half for the quote and dock.
+     */
     private static final int[] SCRIM_COLORS = {
-            0x8C000000, 0x66000000, 0x2E000000, 0x00000000,
-            0x00000000, 0x26000000, 0x61000000, 0x8F000000, 0xA6000000};
+            0x4D000000, 0x1F000000, 0x00000000,
+            0x00000000, 0x2E000000, 0x61000000, 0x80000000, 0x99000000};
     private static final float[] SCRIM_STOPS = {
-            0f, 0.12f, 0.22f, 0.35f,
-            0.50f, 0.62f, 0.75f, 0.88f, 1f};
-    /** Extra shade on the left, behind the quote and the app name, for bright skies. */
-    private static final int[] SIDE_SCRIM_COLORS = {0x73000000, 0x40000000, 0x00000000};
-    private static final float[] SIDE_SCRIM_STOPS = {0f, 0.35f, 0.65f};
+            0f, 0.12f, 0.24f,
+            0.50f, 0.60f, 0.72f, 0.86f, 1f};
+    /** Extra shade behind the clock: an ellipse from the top-left corner, this share of the width and height. */
+    private static final int[] CLOCK_SCRIM_COLORS = {0x73000000, 0x3D000000, 0x00000000};
+    private static final float[] CLOCK_SCRIM_STOPS = {0f, 0.5f, 1f};
+    private static final float CLOCK_SCRIM_W = 0.55f, CLOCK_SCRIM_H = 0.45f;
     private static final ExecutorService DECODER = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
         r.run();
@@ -83,7 +89,7 @@ public class WallpaperView extends FrameLayout {
     private final Bitmap[] bitmaps = new Bitmap[2];
     private final ObjectAnimator[] motion = new ObjectAnimator[2];
     private final Paint scrim = new Paint(Paint.DITHER_FLAG);
-    private final Paint sideScrim = new Paint(Paint.DITHER_FLAG);
+    private final Paint clockScrim = new Paint(Paint.DITHER_FLAG);
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable advance = () -> load(true);
     private final Random random = new Random();
@@ -313,7 +319,7 @@ public class WallpaperView extends FrameLayout {
         return files;
     }
 
-    /** {text, author} pairs from quotes.json that fit in three lines. */
+    /** {text, author} pairs from quotes.json that fit in two lines. */
     private static List<String[]> readQuotes(AssetManager assets) {
         List<String[]> out = new ArrayList<>();
         try {
@@ -379,14 +385,19 @@ public class WallpaperView extends FrameLayout {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         scrim.setShader(new LinearGradient(0, 0, 0, h, SCRIM_COLORS, SCRIM_STOPS, Shader.TileMode.CLAMP));
-        sideScrim.setShader(new LinearGradient(0, 0, w, 0, SIDE_SCRIM_COLORS, SIDE_SCRIM_STOPS, Shader.TileMode.CLAMP));
+        float rw = w * CLOCK_SCRIM_W, rh = h * CLOCK_SCRIM_H;
+        RadialGradient clock = new RadialGradient(0, 0, rw, CLOCK_SCRIM_COLORS, CLOCK_SCRIM_STOPS, Shader.TileMode.CLAMP);
+        Matrix squash = new Matrix();
+        squash.setScale(1f, rh / rw);
+        clock.setLocalMatrix(squash);
+        clockScrim.setShader(clock);
     }
 
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
         canvas.drawRect(0, 0, getWidth(), getHeight(), scrim);
-        canvas.drawRect(0, 0, getWidth(), getHeight(), sideScrim);
+        canvas.drawRect(0, 0, getWidth() * CLOCK_SCRIM_W, getHeight() * CLOCK_SCRIM_H, clockScrim);
     }
 
     @Override
