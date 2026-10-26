@@ -32,6 +32,10 @@ A small clock and the date sit top left, with a quote under them. Two round butt
 Art mode and Settings. A small dock floats at the bottom with your apps and an All apps tile.
 Cards are muted until you focus one, then it lifts.
 
+Hold OK on any tile to change the dock: add an app from All apps, move it left or right, or take it
+out. Up to five apps fit. The launcher ships with the three in `config.xml`; the dock you set on the
+TV replaces them.
+
 The quote's ink changes with each painting: dark ink on light paper, white ink on dark or busy
 paintings, with just enough shade behind it to stay readable.
 
@@ -63,7 +67,8 @@ screensaver, and so is a plain drifting clock.
 
 ### All apps
 
-The last tile in the dock opens every installed app in a grid over the dimmed painting.
+The last tile in the dock opens every installed app in a grid over the dimmed painting. Any app
+with a TV launcher entry shows up here as soon as it is installed; hold OK on it to add it to the dock.
 
 ![All apps grid over a dimmed painting](docs/all-apps.jpg)
 
@@ -90,7 +95,7 @@ Wi-Fi gets the same buttons from a page the Mac serves. See [`remote/README.md`]
 ## Principles
 
 - **Art first.** The painting fills the screen. The clock, quote and dock stay small.
-- **Only the apps you use.** Three in the dock, the rest in All apps.
+- **Only the apps you use.** A few in the dock, the rest in All apps.
 - **No tracking or recommendations.** No network access, no accounts. The launcher lists installed apps and opens them.
 - **Readable on every painting.** `InkRule.java` picks the text colour and shade for each painting to reach WCAG 4.5:1 contrast. A unit test checks every home painting.
 - **Light.** Plain Java, no blur, no video, no background services.
@@ -106,7 +111,8 @@ Wi-Fi gets the same buttons from a page the Mac serves. See [`remote/README.md`]
 
 3. Answer its questions about the apps you use, and accept the "Allow debugging?" prompt on the TV.
 
-To change the dock apps, art, quotes or screensaver later, or to undo the setup, ask the agent.
+To change the dock, hold OK on a tile. To change the art, quotes or screensaver later, or to undo
+the setup, ask the agent.
 
 Works on Android TV and Google TV, not on Samsung, LG or Fire TV.
 

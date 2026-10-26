@@ -41,9 +41,9 @@ the dock. Decide everything else yourself. Everything you change must be reversi
 - `restore.sh` must undo every line of both lists (`cmd package install-existing`, `pm enable`).
 
 ### Launcher
-- Ask which three apps go in the dock and in what order. Put their package names in
-  `launcher/app/src/main/res/values/config.xml` (`dock_apps`). Add apps the user never wants to see
-  to `hidden_apps`.
+- Ask which apps go in the dock (three is a good number, five fit) and in what order. Put their
+  package names in `launcher/app/src/main/res/values/config.xml` (`dock_apps`). Add apps the user
+  never wants to see to `hidden_apps`.
 - Build with `cd launcher && ./gradlew assembleDebug testDebugUnitTest`.
 - Keep targetSdk at 34 or higher. Google TV's Play Protect blocks sideloaded apps built for older
   Android versions, and the install hangs on a dialog on the TV.
@@ -58,6 +58,10 @@ the dock. Decide everything else yourself. Everything you change must be reversi
   it crashed.
 
 ### Things the user may ask for later
+- **The dock:** no rebuild needed. On the TV, holding OK on a tile adds it to the dock, moves it or
+  takes it out. Over adb: `adb shell am start -n com.gathin.tvhome/.MainActivity --es dock_apps
+  com.netflix.ninja,app.brainwrought.tv` (package names in order; `--es dock_apps ""` goes back to
+  `config.xml`). A newly installed app appears in All apps by itself.
 - **Screensaver:** `settings put secure screensaver_components` with
   `com.gathin.tvhome/.ArtDream` (home painting and quote, the default),
   `com.gathin.tvhome/.gallery.ArtDream` (framed gallery) or `com.gathin.tvhome/.ClockDream`

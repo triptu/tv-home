@@ -1,6 +1,7 @@
 package com.gathin.tvhome;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
@@ -157,12 +158,27 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /**
      * Settings passed when starting home over adb, e.g.
-     * {@code am start -n com.gathin.tvhome/.MainActivity --ei art_interval_seconds 3} (0 resets to config.xml).
+     * {@code am start -n com.gathin.tvhome/.MainActivity --ei art_interval_seconds 3} (0 resets to config.xml), or
+     * {@code --es dock_apps com.netflix.ninja,app.brainwrought.tv} for the dock ({@code --es dock_apps ""} resets it).
      */
     private void readSettings(Intent intent) {
-        if (intent != null && intent.hasExtra("art_interval_seconds")) {
+        if (intent == null) return;
+        if (intent.hasExtra("art_interval_seconds")) {
             WallpaperView.setIntervalSeconds(this, intent.getIntExtra("art_interval_seconds", 0));
         }
+        if (intent.hasExtra("dock_apps")) {
+            String csv = intent.getStringExtra("dock_apps");
+            Dock.save(this, csv == null || csv.trim().isEmpty() ? null : Dock.parse(csv));
+        }
+    }
+
+    /** Reads the installed apps and the dock again, e.g. after a pin or an install. */
+    private void loadApps() {
+        AppAdapter.Apps apps = AppAdapter.loadApps(this);
+        List<AppAdapter.Entry> dockItems = new ArrayList<>(apps.dock);
+        dockItems.add(AppAdapter.allAppsEntry(this));
+        dockAdapter.setItems(dockItems);
+        gridAdapter.setItems(apps.others);
     }
 
     @Override
@@ -170,11 +186,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         super.onResume();
         stopped = false;
         wallpaper.start();
-        AppAdapter.Apps apps = AppAdapter.loadApps(this);
-        List<AppAdapter.Entry> dockItems = new ArrayList<>(apps.dock);
-        dockItems.add(AppAdapter.allAppsEntry(this));
-        dockAdapter.setItems(dockItems);
-        gridAdapter.setItems(apps.others);
+        loadApps();
         closeGrid(false);
         wake(false);
 
@@ -316,6 +328,61 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     public void onAllApps() {
         openGrid();
+    }
+
+    /**
+     * OK held on a tile: a plain list. In the dock: move it, take it out, app info. In the grid: put it in the dock,
+     * app info. The dock changes at once and the tile keeps focus where it makes sense.
+     */
+    @Override
+    public void onTileMenu(AppAdapter adapter, int position, AppAdapter.Entry entry) {
+        final String pkg = entry.component.getPackageName();
+        final boolean inDock = adapter == dockAdapter;
+        // The dock as shown, so saving it drops pinned apps that are no longer installed.
+        final List<String> dock = dockAdapter.packages();
+        List<String> labels = new ArrayList<>();
+        List<Runnable> actions = new ArrayList<>();
+        if (inDock) {
+            int i = dock.indexOf(pkg);
+            if (i > 0) {
+                labels.add(getString(R.string.move_left));
+                actions.add(() -> setDock(Dock.move(dock, pkg, -1), pkg));
+            }
+            if (i >= 0 && i < dock.size() - 1) {
+                labels.add(getString(R.string.move_right));
+                actions.add(() -> setDock(Dock.move(dock, pkg, +1), pkg));
+            }
+            labels.add(getString(R.string.remove_from_dock));
+            actions.add(() -> setDock(Dock.unpin(dock, pkg), null));
+        } else {
+            labels.add(getString(R.string.add_to_dock));
+            actions.add(() -> {
+                List<String> pinned = Dock.pin(dock, pkg);
+                if (pinned.size() == dock.size()) {
+                    Toast.makeText(this, getString(R.string.dock_full, Dock.MAX), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                closeGrid(false);
+                setDock(pinned, pkg);
+            });
+        }
+        labels.add(getString(R.string.app_info));
+        actions.add(() -> AppAdapter.openAppInfo(this, entry));
+        new AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+                .setTitle(entry.label)
+                .setItems(labels.toArray(new String[0]), (d, which) -> actions.get(which).run())
+                .show();
+        scheduleIdle();
+    }
+
+    /** Saves the dock, rebuilds both tile sets, and focuses [focusPkg]'s dock tile (the first when null). */
+    private void setDock(List<String> apps, String focusPkg) {
+        Dock.save(this, apps);
+        loadApps();
+        int pos = Math.max(0, apps.indexOf(focusPkg));
+        lastDockSlot = pos;
+        lastDockKey = dockAdapter.keyAt(pos);
+        dock.post(() -> focusDock(pos));
     }
 
     private void focusDock(int position) {

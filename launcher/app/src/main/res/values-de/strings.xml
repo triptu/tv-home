@@ -6,5 +6,11 @@
     <string name="settings">Einstellungen</string>
     <string name="not_available">Auf diesem TV nicht verfügbar</string>
     <string name="cant_open">%1$s lässt sich nicht öffnen</string>
+    <string name="add_to_dock">Ins Dock</string>
+    <string name="remove_from_dock">Aus dem Dock entfernen</string>
+    <string name="move_left">Nach links</string>
+    <string name="move_right">Nach rechts</string>
+    <string name="app_info">App-Info</string>
+    <string name="dock_full">Das Dock fasst %1$d Apps. Erst eine entfernen.</string>
     <string name="date_format">EEEE, d. MMMM</string>
 </resources>

@@ -48,6 +48,9 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
 
         /** The "All apps" tile was selected. */
         void onAllApps();
+
+        /** OK held on an app tile: pin, unpin, move or app info. */
+        void onTileMenu(AppAdapter adapter, int position, Entry entry);
     }
 
     static final class Entry {
@@ -69,7 +72,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         }
     }
 
-    /** The two halves of the installed apps: the dock in config order, and the rest alphabetically. */
+    /** The two halves of the installed apps: the dock in pinned order, and the rest alphabetically. */
     static final class Apps {
         final List<Entry> dock = new ArrayList<>();
         final List<Entry> others = new ArrayList<>();
@@ -95,9 +98,12 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         setHasStableIds(true);
     }
 
-    /** Installed TV apps, split into the dock (res/values/config.xml, dock_apps) and the rest. */
+    /**
+     * Installed TV apps (everything with a LEANBACK_LAUNCHER activity), split into the dock ({@link Dock#pinned})
+     * and the rest. A newly installed app shows up in All apps on the next visit to home; nothing is hardcoded.
+     */
     static Apps loadApps(Context ctx) {
-        List<String> favourites = Arrays.asList(ctx.getResources().getStringArray(R.array.dock_apps));
+        List<String> favourites = Dock.pinned(ctx);
         Set<String> hidden = new HashSet<>(Arrays.asList(ctx.getResources().getStringArray(R.array.hidden_apps)));
         PackageManager pm = ctx.getPackageManager();
         Intent probe = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER);
@@ -161,15 +167,21 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             else launch(e);
         });
         h.card.setOnLongClickListener(allApps ? null : v -> {
-            Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.parse("package:" + e.component.getPackageName()));
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            try {
-                ctx.startActivity(i);
-            } catch (ActivityNotFoundException ignored) {
-            }
+            int pos = h.getBindingAdapterPosition();
+            if (pos != RecyclerView.NO_POSITION) listener.onTileMenu(this, pos, e);
             return true;
         });
+    }
+
+    /** The system's page for the app: force stop, uninstall, storage. */
+    static void openAppInfo(Context ctx, Entry e) {
+        Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:" + e.component.getPackageName()));
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            ctx.startActivity(i);
+        } catch (ActivityNotFoundException ignored) {
+        }
     }
 
     private void launch(Entry e) {
@@ -192,6 +204,15 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     @Override
     public long getItemId(int position) {
         return items.get(position).key().hashCode();
+    }
+
+    /** The package of every app tile, in order (the All apps tile has none). */
+    List<String> packages() {
+        List<String> out = new ArrayList<>();
+        for (Entry e : items) {
+            if (e.component != null) out.add(e.component.getPackageName());
+        }
+        return out;
     }
 
     /** Stable key for the tile at a position, or null. */

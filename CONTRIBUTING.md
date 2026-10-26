@@ -18,7 +18,9 @@ The launcher in `launcher/` is plain Java with AndroidX RecyclerView. It is mean
 little memory:
 
 - No blur, no video, no network access, no background services.
-- Anything that differs per TV goes in `app/src/main/res/values/config.xml`, not in code.
+- Anything that differs per TV goes in `app/src/main/res/values/config.xml`, not in code. What a
+  person changes on the TV itself (today: the dock, in `Dock.java`) is saved in preferences, with
+  `config.xml` as the starting point.
 - Keep D-pad navigation predictable. Test Up, Down, Left and Right from every edge.
 - Run `./gradlew testDebugUnitTest` after changing the art, the quotes or the text layout.
 - Test on a real TV and include a screenshot (`adb exec-out screencap -p > shot.png`).

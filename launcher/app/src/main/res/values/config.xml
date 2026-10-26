@@ -5,7 +5,9 @@
 -->
 <resources>
 
-    <!-- Apps pinned to the dock at the bottom, in this order. Missing apps are skipped. -->
+    <!-- The dock at the bottom, in this order, until it is changed on the TV: hold OK on any tile to add it to the
+         dock, move it or take it out. Over adb, start home with the string extra dock_apps set to "a,b,c" (an empty
+         string goes back to this list; see MainActivity.readSettings). Missing apps are skipped; at most 5 (Dock.MAX). -->
     <string-array name="dock_apps">
         <item>com.google.android.youtube.tv</item>
         <item>com.netflix.ninja</item>
