@@ -86,8 +86,8 @@ figcaption { color: var(--muted); font-size: 15px; margin-top: 12px; }
 /* The why: the stock home beside tv-home, at one height. */
 .why { margin-bottom: clamp(64px, 10vw, 112px); }
 .why-text { max-width: 620px; margin-bottom: 28px; }
-.why h2, .row h2, .art h2 { font: italic 600 clamp(36px, 5vw, 48px)/1.05 Cormorant, Georgia, serif; margin: 0 0 12px; }
-.why p, .row p, .art p { margin: 0; color: var(--muted); font-size: 18px; text-wrap: pretty; }
+.why h2, .row h2 { font: italic 600 clamp(36px, 5vw, 48px)/1.05 Cormorant, Georgia, serif; margin: 0 0 12px; }
+.why p, .row p { margin: 0; color: var(--muted); font-size: 18px; text-wrap: pretty; }
 .pair { margin: 0; }
 .side { display: flex; gap: 20px; align-items: flex-start; }
 .side img { display: block; width: 100%; height: auto; border-radius: 10px; min-width: 0; }
@@ -110,8 +110,6 @@ figcaption { color: var(--muted); font-size: 15px; margin-top: 12px; }
 @keyframes second { 0%, 33% { opacity: 0; } 42%, 75% { opacity: 1; } 75.1%, 100% { opacity: 0; } }
 @keyframes third { 0%, 66% { opacity: 0; } 75%, 92% { opacity: 1; } 100% { opacity: 0; } }
 
-.art { margin-bottom: clamp(64px, 10vw, 112px); }
-.art p { max-width: 620px; margin-bottom: 28px; }
 
 .points {
   display: grid; gap: 36px 56px;
