@@ -2,7 +2,7 @@
 
 A minimal home screen for Android TV and Google TV that shows a painting until you want to watch something.
 
-[![Watch the trailer: an album painting of an oriole with the clock and a quote by Dieter Rams, Less, but better.](docs/trailer-poster.jpg)](https://tv.tushar.ai/#trailer)
+[![Watch the trailer: the home screen on Winslow Homer's Breezing Up, with the clock and a quote](docs/trailer-poster.jpg)](https://tv.tushar.ai/#trailer)
 
 It installs on any Android TV or Google TV with Android 8 or later. The site is [tv.tushar.ai](https://tv.tushar.ai).
 
