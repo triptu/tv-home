@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "buried-raster",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-10-28T08:14:21.765Z",
+        "reason": "agent triage: the flagged images are the Art first cross-fade's second and third frames, which start at opacity 0 and fade to 1 by keyframes (style.css .stack); they do reach the screen"
+      }
+    ]
+  }
+}
