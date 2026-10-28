@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tv-home. Less, but better.</title>
+<meta name="description" content="An open-source home screen for Android TV and Google TV. It shows a painting, a clock and a quote until you want to watch something. No ads, no tracking.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f0e6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16120e" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="tv-home. Less, but better.">
+<meta property="og:description" content="A home screen for Android TV and Google TV that shows a painting until you want to watch something.">
+<meta property="og:image" content="https://tv.tushar.ai/img/og.jpg">
+<meta property="og:url" content="https://tv.tushar.ai/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/cormorant-italic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <a class="mark" href="/">tv-home</a>
+  <a class="bar-link" href="https://github.com/triptu/tv-home">GitHub</a>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Less, but better.</h1>
+    <p class="sub">A home screen for Android TV and Google TV that shows a painting until you want to watch something.</p>
+    <div class="actions">
+      <a class="button primary" href="#setup">Set it up</a>
+      <a class="button" href="https://github.com/triptu/tv-home">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </section>
+
+  <figure class="trailer" id="trailer">
+    <div class="frame">
+      <video controls playsinline preload="metadata" poster="img/hero-less-but-better.webp">
+        <source src="trailer.mp4" type="video/mp4">
+      </video>
+    </div>
+    <figcaption>The stock Google TV home, one prompt, and the TV after.</figcaption>
+  </figure>
+
+  <section class="points">
+    <div class="point">
+      <h2>Art first.</h2>
+      <p>A public-domain painting fills the screen and changes on its own. The clock, quote and dock stay small, and the dock fades when you stop pressing keys.</p>
+    </div>
+    <div class="point">
+      <h2>No ads, no tracking.</h2>
+      <p>The launcher has no network access and no accounts. It lists the apps you installed and opens them.</p>
+    </div>
+    <div class="point">
+      <h2>Art mode and screensaver.</h2>
+      <p>Art mode shows one painting at a time in a frame on a walnut wall, with a museum plaque. The screensaver is the same painting with its title, artist and year.</p>
+    </div>
+    <div class="point">
+      <h2>Debloat you can undo.</h2>
+      <p>The TV's ads, recommendation rows, demos and telemetry are switched off, and the apps you don't use are removed. One script puts it all back. No root, no flashing.</p>
+    </div>
+    <div class="point">
+      <h2>Mac and phone remote.</h2>
+      <p>A small Mac menu bar app drives the TV over adb, and a phone on the same Wi-Fi gets the same buttons from a page the Mac serves.</p>
+    </div>
+  </section>
+
+  <section class="shots" aria-label="Screenshots from the TV">
+    <figure><img src="img/idle-sierra-nevada.webp" width="1280" height="720" loading="lazy" alt="Idle home on Bierstadt's Among the Sierra Nevada: a dim clock and a quote, no dock"><figcaption>Idle</figcaption></figure>
+    <figure><img src="img/art-mode-monet.webp" width="1280" height="720" loading="lazy" alt="Art mode: Monet's The Beach at Sainte-Adresse in a frame, with a plaque"><figcaption>Art mode</figcaption></figure>
+    <figure><img src="img/screensaver-oriole.webp" width="1280" height="720" loading="lazy" alt="Screensaver: Black-headed Oriole by Shaikh Zain al-Din, with a quote and caption"><figcaption>Screensaver</figcaption></figure>
+  </section>
+
+  <section class="setup" id="setup">
+    <h2>Set it up</h2>
+    <ol>
+      <li>On the TV, turn on Developer options: in Settings, About, press OK on the build number seven times. Then turn on USB debugging and Wireless debugging.</li>
+      <li>On a computer on the same Wi-Fi, give Claude Code or Codex this prompt:
+        <div class="prompt">
+          <code id="prompt">Set up github.com/triptu/tv-home on my TV. Follow PROMPT.md in that repo.</code>
+          <button type="button" class="copy" data-copy="prompt">Copy</button>
+        </div>
+      </li>
+      <li>Answer its questions about the apps you use, and accept "Allow debugging?" on the TV.</li>
+    </ol>
+    <p class="more">The <a href="https://github.com/triptu/tv-home#readme">README</a> covers the rest: changing the dock, adding your own art, and undoing the setup.</p>
+    <p class="works">Works on Android TV and Google TV with Android 8 or later. Not Samsung, LG or Fire TV.</p>
+  </section>
+</main>
+
+<footer>
+  <p>A fork of <a href="https://github.com/Gathin23/tv-vibehack">tv-vibehack</a> by Gathin23. The art is public domain or CC0, from museums and NASA; each picture's source is in the repo.</p>
+  <p><a href="https://sites.tushar.ai/projects/">More projects</a></p>
+</footer>
+
+<script>
+  document.querySelectorAll('[data-copy]').forEach(button => {
+    button.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(document.getElementById(button.dataset.copy).textContent)
+      button.textContent = 'Copied'
+      setTimeout(() => { button.textContent = 'Copy' }, 1600)
+    })
+  })
+</script>
+</body>
+</html>
