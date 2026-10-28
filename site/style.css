@@ -77,18 +77,49 @@ h1 {
 .frame video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 6px; background: #000; }
 figcaption { color: var(--muted); font-size: 15px; margin-top: 12px; }
 
+/* Screenshots sit in the same mat as the trailer. */
+.shot { margin: 0; }
+.shot img, .shot video, .stack { display: block; width: 100%; height: auto; border-radius: 10px; }
+.shot video { aspect-ratio: 16 / 9; background: #000; }
+.shot figcaption { margin-top: 10px; font-size: 14px; }
+
+/* The why: the stock home beside tv-home, at one height. */
+.why { margin-bottom: clamp(64px, 10vw, 112px); }
+.why-text { max-width: 620px; margin-bottom: 28px; }
+.why h2, .row h2, .art h2 { font: italic 600 clamp(36px, 5vw, 48px)/1.05 Cormorant, Georgia, serif; margin: 0 0 12px; }
+.why p, .row p, .art p { margin: 0; color: var(--muted); font-size: 18px; text-wrap: pretty; }
+.pair { margin: 0; }
+.side { display: flex; gap: 20px; align-items: flex-start; }
+.side img { display: block; width: 100%; height: auto; border-radius: 10px; min-width: 0; }
+.side .stock { flex: 0 0 25%; width: 25%; }
+.pair figcaption { margin-top: 10px; font-size: 14px; text-wrap: pretty; }
+
+/* Each thing you get beside its screenshot, sides alternating. */
+.rows { display: grid; gap: clamp(48px, 7vw, 80px); margin-bottom: clamp(64px, 10vw, 112px); }
+.row { display: grid; grid-template-columns: 3fr 2fr; gap: clamp(24px, 4vw, 48px); align-items: center; }
+.row:nth-child(even) .shot { order: 2; }
+.row .text { max-width: 400px; }
+.row:nth-child(even) .text { justify-self: end; }
+
+/* Three home screens, one after another. 12 seconds round. */
+.stack { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+.stack img { position: absolute; inset: 0; }
+.stack img + img { opacity: 0; animation: 12s linear infinite; }
+.stack img:nth-child(2) { animation-name: second; }
+.stack img:nth-child(3) { animation-name: third; }
+@keyframes second { 0%, 33% { opacity: 0; } 42%, 75% { opacity: 1; } 75.1%, 100% { opacity: 0; } }
+@keyframes third { 0%, 66% { opacity: 0; } 75%, 92% { opacity: 1; } 100% { opacity: 0; } }
+
+.art { margin-bottom: clamp(64px, 10vw, 112px); }
+.art p { max-width: 620px; margin-bottom: 28px; }
+
 .points {
   display: grid; gap: 36px 56px;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  margin-bottom: clamp(48px, 8vw, 80px);
+  margin-bottom: clamp(64px, 10vw, 112px);
 }
 .point h2 { font-size: 22px; font-weight: 600; line-height: 1.25; margin: 0 0 8px; }
 .point p { margin: 0; color: var(--muted); text-wrap: pretty; }
-
-.shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: clamp(64px, 10vw, 112px); }
-.shots figure { margin: 0; }
-.shots img { display: block; width: 100%; height: auto; border-radius: 8px; }
-.shots figcaption { margin-top: 8px; font-size: 14px; }
 
 .setup { max-width: 720px; margin-bottom: clamp(64px, 10vw, 112px); scroll-margin-top: 16px; }
 .setup h2 { font: italic 600 clamp(40px, 6vw, 56px)/1 Cormorant, Georgia, serif; margin: 0 0 24px; }
@@ -111,9 +142,19 @@ figcaption { color: var(--muted); font-size: 15px; margin-top: 12px; }
 footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: 14px; }
 footer p { margin: 0 0 6px; }
 
+@media (max-width: 760px) {
+  .row { grid-template-columns: 1fr; gap: 20px; }
+  .row:nth-child(even) .shot { order: 0; }
+  .row:nth-child(even) .text { justify-self: start; }
+  .row .text { max-width: none; }
+  .side { gap: 12px; }
+  .side .stock { flex-basis: 30%; width: 30%; }
+}
 @media (max-width: 640px) {
-  .shots { grid-template-columns: 1fr; }
   .prompt { flex-direction: column; align-items: stretch; }
   .copy { align-self: flex-start; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  .stack img + img { display: none; }
+}
